@@ -71,3 +71,26 @@ jobs:
             -destination 'generic/platform=iOS Simulator' \
             IPHONEOS_DEPLOYMENT_TARGET=26.0 CODE_SIGNING_ALLOWED=NO \
             build | tail -n 80
+
+  app-ui-tests:
+    name: App UI-Test gegen Testportal (iOS Simulator)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: brew install xcodegen
+      - run: xcodegen generate
+      - name: Testportal starten
+        run: |
+          nohup python3 tools/test-portal/test_portal.py --host 127.0.0.1 --port 8080 --portal 02_terms --log portal.jsonl > portal.out 2>&1 &
+          sleep 2
+          curl -sS -o /dev/null -w "%{http_code} %{redirect_url}\n" http://127.0.0.1:8080/hotspot-detect.html
+      - name: UI-Test
+        run: |
+          set -o pipefail
+          UDID=$(xcrun simctl list devices available -j | python3 -c "import sys,json; d=json.load(sys.stdin)['devices']; print(next(x['udid'] for rt,devs in sorted(d.items(), reverse=True) if 'iOS' in rt for x in devs if x['name'].startswith('iPhone')))")
+          echo "Simulator: $UDID"
+          xcodebuild test -project CaptiveAI.xcodeproj -scheme CaptiveAI -destination "id=$UDID" \
+            IPHONEOS_DEPLOYMENT_TARGET=26.0 CODE_SIGNING_ALLOWED=NO | tail -n 120
+      - name: Portal-Log
+        if: always()
+        run: cat portal.jsonl || true

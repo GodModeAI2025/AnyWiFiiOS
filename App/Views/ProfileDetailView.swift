@@ -101,10 +101,12 @@ struct ProfileDetailView: View {
                 Button { Task { await login.login(profile, context: context) } } label: {
                     Label("Jetzt im WLAN anmelden", systemImage: "wifi")
                 }
+                .accessibilityIdentifier("detail.login")
             case .running(let text):
                 HStack { ProgressView(); Text(text) }
             case .finished(let outcome, let reason):
                 Label(outcome.title, systemImage: outcome.symbol).foregroundStyle(outcome.tint)
+                    .accessibilityIdentifier("detail.outcome")
                 Text(reason).font(.subheadline)
                 Button("Erneut versuchen") { Task { await login.login(profile, context: context) } }
             }

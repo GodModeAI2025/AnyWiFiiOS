@@ -7,7 +7,7 @@ struct CaptiveAIApp: App {
         WindowGroup {
             RootView()
         }
-        .modelContainer(for: [ProfileRecord.self, RunRecord.self])
+        .modelContainer(for: [ProfileRecord.self, RunRecord.self], inMemory: AppConfig.useInMemoryStore)
     }
 }
 

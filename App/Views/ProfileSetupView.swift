@@ -38,7 +38,9 @@ struct ProfileSetupView: View {
             Form {
                 Section("Netzwerk") {
                     TextField("Profilname, z. B. Hotel Muster", text: $name)
+                        .accessibilityIdentifier("setup.name")
                     TextField("WLAN-Name (SSID)", text: $ssid)
+                        .accessibilityIdentifier("setup.ssid")
                         .textInputAutocapitalization(.never).autocorrectionDisabled()
                     Toggle("WLAN-Zugang mitspeichern", isOn: $hasWiFi)
                     if hasWiFi {
@@ -67,10 +69,12 @@ struct ProfileSetupView: View {
                     HStack {
                         TextField("Anweisung …", text: $input, axis: .vertical)
                             .lineLimit(1...4)
+                            .accessibilityIdentifier("setup.input")
                         if busy { ProgressView() }
                         Button { Task { await send() } } label: { Image(systemName: "arrow.up.circle.fill").font(.title2) }
                             .disabled(input.trimmingCharacters(in: .whitespaces).isEmpty || busy)
                             .accessibilityLabel("Senden")
+                            .accessibilityIdentifier("setup.send")
                     }
                 } header: {
                     Text("Anmeldung beschreiben")
@@ -107,6 +111,7 @@ struct ProfileSetupView: View {
                 ToolbarItem(placement: .cancellationAction) { Button("Abbrechen") { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Speichern") { save() }
+                        .accessibilityIdentifier("setup.save")
                         .disabled(name.isEmpty || ssid.isEmpty || (draft.fields.isEmpty && !draft.acceptTerms))
                 }
             }

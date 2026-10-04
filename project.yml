@@ -55,6 +55,10 @@ targets:
         NSSpeechRecognitionUsageDescription: Deine gesprochene Anweisung wird auf dem Gerät in Text umgewandelt.
         NSLocationWhenInUseUsageDescription: iOS gibt den Namen des aktuellen WLANs nur mit Standortfreigabe heraus. CaptiveAI nutzt ihn ausschließlich, um das passende Profil zu wählen.
         NSLocalNetworkUsageDescription: CaptiveAI spricht mit der Anmeldeseite des WLANs.
+        # Captive Portals und der Apple-Probe (http://captive.apple.com) laufen oft nur über HTTP.
+        # Ohne diese Ausnahme blockiert ATS die Anmeldung. Für App Review begründen (docs/status.md).
+        NSAppTransportSecurity:
+          NSAllowsArbitraryLoads: true
         UTExportedTypeDeclarations:
           - UTTypeIdentifier: com.captiveai.profile
             UTTypeDescription: CaptiveAI-Profil
@@ -77,6 +81,18 @@ targets:
         # com.apple.developer.networking.HotspotHelper: true
         # com.apple.developer.private-cloud-compute: true
 
+  CaptiveAIUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: UITests
+    dependencies:
+      - target: CaptiveAI
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.captiveai.uitests
+        GENERATE_INFOPLIST_FILE: YES
+
   # Hotspot-Provider-Extensions (Phase 9) folgen nach Spike S0: Extension-Point-IDs und Info.plist-Schlüssel
   # stehen nicht in der öffentlich abrufbaren Doku und müssen aus der Xcode-Target-Vorlage übernommen werden.
   # Quellcode liegt bereits unter Extensions/.
@@ -86,6 +102,9 @@ schemes:
     build:
       targets:
         CaptiveAI: all
+    test:
+      targets:
+        - CaptiveAIUITests
     run:
       config: Debug
     archive:

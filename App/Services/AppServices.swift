@@ -10,6 +10,25 @@ enum AppConfig {
     static let keychain = KeychainStore(service: "com.captiveai.credentials", accessGroup: nil)
     static let appVersion = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0"
 
+    /// Apple-Probe. In Debug-Builds per Launch-Argument `-CaptiveAIProbeURL <url>` überschreibbar (UI-Tests gegen tools/test-portal).
+    static var probeURL: URL {
+        #if DEBUG
+        if let override = UserDefaults.standard.string(forKey: "CaptiveAIProbeURL"), let url = URL(string: override) {
+            return url
+        }
+        #endif
+        return URL(string: "http://captive.apple.com/hotspot-detect.html")!
+    }
+
+    /// Debug: `-CaptiveAIInMemoryStore YES` startet mit leerer, flüchtiger Datenbank (UI-Tests).
+    static var useInMemoryStore: Bool {
+        #if DEBUG
+        return UserDefaults.standard.bool(forKey: "CaptiveAIInMemoryStore")
+        #else
+        return false
+        #endif
+    }
+
     static var debugBundleDirectory: URL {
         let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
         return docs.appendingPathComponent("DebugBundles", isDirectory: true)

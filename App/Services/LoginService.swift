@@ -34,6 +34,7 @@ final class LoginService {
         let values = SessionValueProvider(keychain: AppConfig.keychain, asked: asked)
         var runner = RecipeRunner(transport: URLSessionWiFiTransport(), values: values)
         runner.portalHostHints = profile.portalHostHints
+        runner.probeURL = AppConfig.probeURL
         let planner = PlannerFactory.make()
 
         let result: RunResult
