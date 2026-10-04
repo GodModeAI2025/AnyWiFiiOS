@@ -1,0 +1,92 @@
+# XcodeGen-Projekt (SPEC §4). Erzeugen: `xcodegen generate`. Die .xcodeproj wird nicht eingecheckt.
+# Bundle-ID-Präfix und Team-ID liefert der Auftraggeber (SPEC §8). Bis dahin Platzhalter.
+name: CaptiveAI
+options:
+  bundleIdPrefix: com.example.captiveai
+  deploymentTarget:
+    iOS: "27.0"
+  createIntermediateGroups: true
+  developmentLanguage: de
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+    TARGETED_DEVICE_FAMILY: "1,2"
+    SUPPORTS_MACCATALYST: NO
+    SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: NO
+    SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD: NO
+    CODE_SIGN_STYLE: Automatic
+    DEVELOPMENT_TEAM: ""
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    LOCALIZATION_PREFERS_STRING_CATALOGS: YES
+    SWIFT_EMIT_LOC_STRINGS: YES
+
+packages:
+  CaptiveCore:
+    path: Packages/CaptiveCore
+
+targets:
+  CaptiveAI:
+    type: application
+    platform: iOS
+    sources:
+      - path: App
+    dependencies:
+      - package: CaptiveCore
+        product: CaptiveCore
+      - package: CaptiveCore
+        product: CaptiveCoreApple
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.captiveai
+        INFOPLIST_KEY_CFBundleDisplayName: CaptiveAI
+    info:
+      path: App/Info.plist
+      properties:
+        CFBundleDisplayName: CaptiveAI
+        UILaunchScreen: {}
+        UIApplicationSupportsIndirectInputEvents: true
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
+        UISupportedInterfaceOrientations~ipad: [UIInterfaceOrientationPortrait, UIInterfaceOrientationPortraitUpsideDown, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
+        LSSupportsOpeningDocumentsInPlace: false
+        NSMicrophoneUsageDescription: Damit du die Anmeldung im Chat per Sprache beschreiben kannst.
+        NSSpeechRecognitionUsageDescription: Deine gesprochene Anweisung wird auf dem Gerät in Text umgewandelt.
+        NSLocationWhenInUseUsageDescription: iOS gibt den Namen des aktuellen WLANs nur mit Standortfreigabe heraus. CaptiveAI nutzt ihn ausschließlich, um das passende Profil zu wählen.
+        NSLocalNetworkUsageDescription: CaptiveAI spricht mit der Anmeldeseite des WLANs.
+        UTExportedTypeDeclarations:
+          - UTTypeIdentifier: com.captiveai.profile
+            UTTypeDescription: CaptiveAI-Profil
+            UTTypeConformsTo: [public.data, public.zip-archive]
+            UTTypeTagSpecification:
+              public.filename-extension: [captiveprofile]
+        CFBundleDocumentTypes:
+          - CFBundleTypeName: CaptiveAI-Profil
+            CFBundleTypeRole: Editor
+            LSHandlerRank: Owner
+            LSItemContentTypes: [com.captiveai.profile]
+    entitlements:
+      path: App/CaptiveAI.entitlements
+      properties:
+        com.apple.developer.networking.HotspotConfiguration: true
+        com.apple.developer.networking.wifi-info: true
+        com.apple.security.application-groups: [group.com.example.captiveai]
+        keychain-access-groups: ["$(AppIdentifierPrefix)com.example.captiveai.shared"]
+        # Nach Genehmigung durch Apple (docs/entitlement-antraege.md):
+        # com.apple.developer.networking.HotspotHelper: true
+        # com.apple.developer.private-cloud-compute: true
+
+  # Hotspot-Provider-Extensions (Phase 9) folgen nach Spike S0: Extension-Point-IDs und Info.plist-Schlüssel
+  # stehen nicht in der öffentlich abrufbaren Doku und müssen aus der Xcode-Target-Vorlage übernommen werden.
+  # Quellcode liegt bereits unter Extensions/.
+
+schemes:
+  CaptiveAI:
+    build:
+      targets:
+        CaptiveAI: all
+    run:
+      config: Debug
+    archive:
+      config: Release

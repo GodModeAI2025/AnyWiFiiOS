@@ -52,3 +52,22 @@ jobs:
       - name: swift test
         working-directory: Packages/CaptiveCore
         run: swift test --parallel
+
+  app-ios:
+    name: App (xcodebuild, iOS Simulator)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: XcodeGen installieren
+        run: brew install xcodegen
+      - name: Projekt erzeugen
+        run: xcodegen generate
+      # Die Runner haben (Stand 10/2026) nur das iOS-26-SDK. Die App zielt auf iOS 27 (SPEC §3.6),
+      # nutzt aber nur APIs aus iOS 26. Deshalb wird hier mit Deployment-Target 26.0 kompiliert.
+      - name: Build
+        run: |
+          set -o pipefail
+          xcodebuild -project CaptiveAI.xcodeproj -scheme CaptiveAI \
+            -destination 'generic/platform=iOS Simulator' \
+            IPHONEOS_DEPLOYMENT_TARGET=26.0 CODE_SIGNING_ALLOWED=NO \
+            build | tail -n 80
