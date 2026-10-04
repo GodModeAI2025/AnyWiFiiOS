@@ -146,7 +146,9 @@ class Handler(BaseHTTPRequestHandler):
             errors.append("missing or wrong session cookie")
         for field, expected in spec.get("required", {}).items():
             if expected == "$issued":
-                expected = tokens.get("csrf" if field == "csrf" else field)
+                # CSRF-artige Felder → csrf-Token, Challenge/Stage-Felder → stage_token
+                key = "csrf" if "csrf" in field.lower() else "stage_token"
+                expected = tokens.get(key)
             elif isinstance(expected, str) and expected.startswith("$"):
                 expected = values[expected[1:]]
             if form.get(field) != expected:

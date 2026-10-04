@@ -150,6 +150,42 @@
       "concepts": {
         "room": "roomNumber"
       }
+    },
+    "16_icomera_form": {
+      "expectedOutcome": "success",
+      "required": {
+        "login": "true",
+        "CSRFToken": "$issued",
+        "connect": ""
+      }
+    },
+    "17_icomera_cna": {
+      "expectedOutcome": "success",
+      "swiftOnly": true,
+      "adapter": "icomeraCNA",
+      "host": "login.wifionice.de",
+      "note": "Kein Formular. Login per POST /cna/logon (JSON) über den Adapter icomeraCNA (ADR 0001)"
+    },
+    "18_hotsplots_uam": {
+      "expectedOutcome": "success",
+      "required": {
+        "haveTerms": "1",
+        "termsOK": "1",
+        "challenge": "$issued",
+        "uamip": "192.168.44.1",
+        "uamport": "80",
+        "userurl": "http://example.com/",
+        "myLogin": "agb",
+        "ll": "de",
+        "nasid": "DB-Regio-1234",
+        "custom": "1",
+        "button": "kostenlos einloggen"
+      }
+    },
+    "19_meraki_clickthrough": {
+      "expectedOutcome": "success",
+      "swiftOnly": true,
+      "note": "Form-Action ist die base_grant_url aus der Portal-URL (anderer Host). Grant: GET https://n123.network-auth.com/splash/grant"
     }
   }
 }

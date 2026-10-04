@@ -1,0 +1,17 @@
+recipeVersion: 1
+profileId: 00000000-0000-0000-0000-000000000016
+name: ICE alt
+network:
+  ssid: WIFIonICE
+stages:
+  - id: connect
+    match:
+      anyText: [WIFIonICE, nicht verbunden]
+    actions:
+      - tap:
+          target:
+            role: button
+            labelAny: [Jetzt kostenlos verbinden, verbinden]
+
+success:
+  internetAccess: true

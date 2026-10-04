@@ -99,7 +99,7 @@ class PortalTests(unittest.TestCase):
 
     def test_every_success_fixture_accepts_correct_form(self):
         for name, spec in MANIFEST["fixtures"].items():
-            if spec["expectedOutcome"] != "success" or name == "09_multistage_guest":
+            if spec["expectedOutcome"] != "success" or name == "09_multistage_guest" or spec.get("swiftOnly"):
                 continue
             with self.subTest(fixture=name):
                 self.client = Client(self.base)

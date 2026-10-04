@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WIFIonICE</title>
+</head>
+<body>
+<!-- Synthetisch, nach alter Icomera-Generation (DB ICE / metronom), siehe docs/research -->
+<div class="user-offline">Sie sind noch nicht mit dem Internet verbunden.</div>
+<form method="post" action="/auth">
+  <input type="hidden" name="fixture" value="16_icomera_form">
+  <input type="hidden" name="login" value="true">
+  <input type="hidden" name="CSRFToken" value="{{csrf}}">
+  <button type="submit" name="connect" value="">Jetzt kostenlos verbinden</button>
+</form>
+</body>
+</html>

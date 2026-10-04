@@ -1,0 +1,15 @@
+recipeVersion: 1
+profileId: 00000000-0000-0000-0000-000000000019
+name: Meraki Guest
+network:
+  ssid: Guest_WiFi
+stages:
+  - id: splash
+    actions:
+      - tap:
+          target:
+            role: button
+            labelAny: [Continue to the Internet, Continue]
+
+success:
+  internetAccess: true

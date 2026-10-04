@@ -1,0 +1,19 @@
+recipeVersion: 1
+profileId: 00000000-0000-0000-0000-000000000018
+name: DB Regio
+network:
+  ssid: WIFI@DB
+stages:
+  - id: terms
+    actions:
+      - check:
+          target:
+            role: checkbox
+            labelAny: [Nutzungsbedingungen]
+      - tap:
+          target:
+            role: button
+            labelAny: [Kostenlos einloggen, einloggen]
+
+success:
+  internetAccess: true

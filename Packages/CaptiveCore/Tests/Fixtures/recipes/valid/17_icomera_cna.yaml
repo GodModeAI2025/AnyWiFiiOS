@@ -1,0 +1,13 @@
+recipeVersion: 1
+profileId: 00000000-0000-0000-0000-000000000017
+name: ICE neu
+network:
+  ssid: WIFIonICE
+stages:
+  - id: cna
+    actions:
+      - adapter:
+          id: icomeraCNA
+
+success:
+  internetAccess: true

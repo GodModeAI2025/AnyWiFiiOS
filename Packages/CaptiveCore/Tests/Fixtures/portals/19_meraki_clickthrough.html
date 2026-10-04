@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Guest Wi-Fi</title>
+</head>
+<body>
+<!-- Synthetisch, nach Meraki Click-through: Form-Action = base_grant_url aus der Portal-URL -->
+<h1>Welcome</h1>
+<p>By clicking Continue you agree to our terms of use.</p>
+<form method="get" action="{{base_grant_url}}">
+  <input type="hidden" name="continue_url" value="{{user_continue_url}}">
+  <input type="hidden" name="duration" value="3600">
+  <button type="submit">Continue to the Internet</button>
+</form>
+</body>
+</html>

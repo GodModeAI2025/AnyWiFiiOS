@@ -81,6 +81,7 @@ public struct CookieJar: Sendable, Equatable {
             var domain = host
             var hostOnly = true
             var expired = false
+            var rejected = false
             for attribute in parts.dropFirst() {
                 let pair = attribute.split(separator: "=", maxSplits: 1).map {
                     $0.trimmingCharacters(in: .whitespaces)
@@ -89,15 +90,18 @@ public struct CookieJar: Sendable, Equatable {
                 if key == "domain", pair.count == 2 {
                     var d = pair[1].lowercased()
                     if d.hasPrefix(".") { d.removeFirst() }
-                    // Nur gleiche Domain oder Elterndomain zulassen.
+                    // Nur gleiche Domain oder Elterndomain zulassen, sonst Cookie verwerfen (RFC 6265 §5.3).
                     if host == d || host.hasSuffix("." + d) {
                         domain = d
                         hostOnly = false
+                    } else {
+                        rejected = true
                     }
                 } else if key == "max-age", pair.count == 2, let seconds = Int(pair[1]), seconds <= 0 {
                     expired = true
                 }
             }
+            if rejected { continue }
             cookies.removeAll { $0.domain == domain && $0.name == name }
             if !expired {
                 cookies.append(Cookie(domain: domain, hostOnly: hostOnly, name: name, value: value))

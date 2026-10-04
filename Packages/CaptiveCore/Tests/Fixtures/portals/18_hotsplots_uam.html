@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>hotsplots – WLAN</title>
+</head>
+<body>
+<!-- Synthetisch, nach hotsplots/ChilliSpot-UAM (DB Regio, Hotels), siehe docs/research -->
+<h1>Willkommen im WLAN</h1>
+<form method="post" action="/auth" name="login">
+  <input type="hidden" name="fixture" value="18_hotsplots_uam">
+  <input type="hidden" name="haveTerms" value="1">
+  <input type="hidden" name="challenge" value="{{stage_token}}">
+  <input type="hidden" name="uamip" value="192.168.44.1">
+  <input type="hidden" name="uamport" value="80">
+  <input type="hidden" name="userurl" value="http://example.com/">
+  <input type="hidden" name="myLogin" value="agb">
+  <input type="hidden" name="ll" value="de">
+  <input type="hidden" name="nasid" value="DB-Regio-1234">
+  <input type="hidden" name="custom" value="1">
+  <label><input type="checkbox" name="termsOK" value="1"> Ich habe die <a href="/terms-of-use">Nutzungsbedingungen</a> gelesen und akzeptiere sie.</label>
+  <button type="submit" name="button" value="kostenlos einloggen">Kostenlos einloggen</button>
+</form>
+</body>
+</html>
