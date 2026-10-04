@@ -64,7 +64,7 @@ public struct HeuristicPlanner: PortalPlanner {
         return PortalPlan(actions: Array(remaining.prefix(4)))
     }
 
-    static func source(for concept: String, intent: PortalIntent, bindings: [CredentialBinding]) -> ValueSource? {
+    public static func source(for concept: String, intent: PortalIntent, bindings: [CredentialBinding]) -> ValueSource? {
         for ins in intent.instructions {
             guard case .fill(let c, let src) = ins, c == concept else { continue }
             switch src {
@@ -83,7 +83,7 @@ public struct HeuristicPlanner: PortalPlanner {
         return nil
     }
 
-    static func isNegative(_ text: String) -> Bool {
+    public static func isNegative(_ text: String) -> Bool {
         let t = text.lowercased()
         return ["cancel", "abbrechen", "back", "zurück", "decline", "ablehnen"].contains { t.contains($0) }
     }

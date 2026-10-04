@@ -11,6 +11,7 @@ struct ProfileDetailView: View {
     @State private var wifiPassphrase = ""
     @State private var wifiStatus: String?
     @State private var showAdvanced = false
+    @State private var showChat = false
     @State private var loginStatus: String?
     @State private var askConcept: String?
 
@@ -49,6 +50,11 @@ struct ProfileDetailView: View {
         .sheet(item: Binding(get: { askConcept.map(AskItem.init) }, set: { askConcept = $0?.concept })) { item in
             AskValueSheet(concept: item.concept, prompt: promptText(item.concept), secure: ConceptCatalog.sensitivity(of: item.concept) == .secret) { value in
                 runLogin(askValues: [item.concept: value])
+            }
+        }
+        .sheet(isPresented: $showChat) {
+            if let d = draft {
+                ChatView(profile: d) { updated in draft = updated }
             }
         }
         .sheet(isPresented: $showAdvanced) {
@@ -179,6 +185,8 @@ struct ProfileDetailView: View {
     @ViewBuilder private func recipeSection(_ p: Binding<PortalProfile>) -> some View {
         Section("Ablauf") {
             LabeledContent("Recipe", value: p.wrappedValue.recipe == nil ? String(localized: "Noch keins") : String(localized: "Revision \(p.wrappedValue.recipeRevision)"))
+            Button("Mit Assistent einrichten", systemImage: "sparkles") { showChat = true }
+                .accessibilityIdentifier("open-chat")
             Button("Erweitert (YAML)", systemImage: "curlybraces") { showAdvanced = true }
                 .accessibilityIdentifier("open-advanced")
         }

@@ -87,3 +87,26 @@ final class ManualModeUITests: XCTestCase {
         XCTAssertTrue(app.otherElements["activity-list"].waitForExistence(timeout: 5) || app.collectionViews["activity-list"].waitForExistence(timeout: 5))
     }
 }
+
+/// Phase 5: Der Chat öffnet sich. Ohne Modell (Simulator) ist er deaktiviert, der Erweitert-Editor bleibt nutzbar.
+final class ChatUITests: XCTestCase {
+    override func setUp() { continueAfterFailure = false }
+
+    @MainActor func testChatOpensAndDegradesGracefully() {
+        let app = XCUIApplication()
+        app.launchArguments = ["-uitest", "-seedHotel"]
+        app.launch()
+        app.staticTexts["Testhotel"].firstMatch.tap()
+        let chat = app.buttons["open-chat"]
+        for _ in 0..<6 where !chat.exists || !chat.isHittable { app.swipeUp() }
+        chat.tap()
+        let input = app.textFields["chat-input"]
+        let unavailable = app.staticTexts["Chat nicht verfügbar"]
+        XCTAssertTrue(input.waitForExistence(timeout: 10) || unavailable.waitForExistence(timeout: 5))
+        app.buttons["Schließen"].tap()
+        let adv = app.buttons["open-advanced"]
+        for _ in 0..<6 where !adv.exists || !adv.isHittable { app.swipeUp() }
+        adv.tap()
+        XCTAssertTrue(app.textViews["recipe-text"].waitForExistence(timeout: 5))
+    }
+}
