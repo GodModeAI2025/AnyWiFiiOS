@@ -11,11 +11,14 @@ struct ProfileDetailView: View {
     @State private var wifiPassphrase = ""
     @State private var wifiStatus: String?
     @State private var showAdvanced = false
+    @State private var loginStatus: String?
+    @State private var askConcept: String?
 
     var body: some View {
         Group {
             if let binding = Binding($draft) {
                 Form {
+                    loginSection(binding)
                     generalSection(binding)
                     credentialSection(binding)
                     wifiSection(binding)
@@ -43,9 +46,62 @@ struct ProfileDetailView: View {
                 }
             }
         }
+        .sheet(item: Binding(get: { askConcept.map(AskItem.init) }, set: { askConcept = $0?.concept })) { item in
+            AskValueSheet(concept: item.concept, prompt: promptText(item.concept), secure: ConceptCatalog.sensitivity(of: item.concept) == .secret) { value in
+                runLogin(askValues: [item.concept: value])
+            }
+        }
         .sheet(isPresented: $showAdvanced) {
             if let d = draft {
                 RecipeEditorView(profile: d) { updated in draft = updated }
+            }
+        }
+    }
+
+    struct AskItem: Identifiable { var concept: String; var id: String { concept } }
+
+    @ViewBuilder private func loginSection(_ p: Binding<PortalProfile>) -> some View {
+        Section {
+            Button {
+                runLogin(askValues: [:])
+            } label: {
+                if model.running.contains(profileID) {
+                    HStack { ProgressView(); Text("Melde an …") }
+                } else {
+                    Label("Jetzt anmelden", systemImage: "wifi.router")
+                }
+            }
+            .disabled(model.running.contains(profileID))
+            .accessibilityIdentifier("login-now")
+            if let loginStatus {
+                Text(loginStatus).font(.footnote)
+                    .accessibilityIdentifier("login-status")
+            }
+        } header: {
+            Text("Anmeldung")
+        } footer: {
+            Text("Manueller Modus: Die App öffnet die Anmeldeseite des aktuellen WLANs und führt den gelernten Ablauf aus.")
+        }
+    }
+
+    private func promptText(_ concept: String) -> String {
+        draft?.credentialBindings.first { $0.concept == concept }?.prompt ?? concept
+    }
+
+    private func runLogin(askValues: [String: String]) {
+        Task {
+            guard let report = await model.login(profileID, askValues: askValues) else { return }
+            draft = model.profile(profileID)
+            switch report.result.outcome {
+            case .success:
+                loginStatus = report.learned
+                    ? String(localized: "Angemeldet. Der Ablauf wurde gelernt (Revision \(report.profile.recipeRevision)).")
+                    : String(localized: "Angemeldet.")
+            case .missingUserValue:
+                askConcept = report.result.requiredConcept
+                loginStatus = nil
+            default:
+                loginStatus = String(localized: "\(report.result.outcome.explanation)")
             }
         }
     }
@@ -224,5 +280,45 @@ struct CredentialSheet: View {
         case "phoneNumber": String(localized: "Telefonnummer")
         default: concept
         }
+    }
+}
+
+struct AskValueSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    let concept: String
+    let prompt: String
+    let secure: Bool
+    var onSubmit: (String) -> Void
+    @State private var value = ""
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    // Eigenes Eingabefeld: der Wert geht nie an ein Modell (SPEC §3.2).
+                    if secure {
+                        SecureField(prompt, text: $value).accessibilityIdentifier("ask-value")
+                    } else {
+                        TextField(prompt, text: $value)
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled()
+                            .accessibilityIdentifier("ask-value")
+                    }
+                } footer: {
+                    Text("Das Portal braucht diesen Wert für die Anmeldung.")
+                }
+            }
+            .navigationTitle(prompt)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button("Abbrechen") { dismiss() } }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Anmelden") { onSubmit(value); dismiss() }
+                        .disabled(value.isEmpty)
+                        .accessibilityIdentifier("ask-submit")
+                }
+            }
+        }
+        .presentationDetents([.medium])
     }
 }

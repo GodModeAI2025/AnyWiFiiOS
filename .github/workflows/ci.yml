@@ -21,6 +21,10 @@ jobs:
         run: brew install xcodegen
       - name: Projekt erzeugen
         run: xcodegen generate
+      - name: Testportal starten
+        run: |
+          nohup python3 tools/test-portal/server.py --port 8099 > portal.log 2>&1 &
+          sleep 1
       - name: Build und UI-Tests (Simulator)
         run: |
           DEST=$(xcrun simctl list devices available | grep -m1 -oE 'iPhone [^(]+\(([0-9A-F-]+)\)' | grep -oE '[0-9A-F-]{36}')

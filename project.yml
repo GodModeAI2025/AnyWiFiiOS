@@ -27,12 +27,16 @@ targets:
         product: CaptiveCore
       - package: CaptiveCore
         product: CaptiveCoreApple
+      - target: CaptiveAIControls
     info:
       path: App/Info.plist
       properties:
         CFBundleDisplayName: CaptiveAI
         CFBundleShortVersionString: "$(MARKETING_VERSION)"
         CaptiveKeychainGroup: "$(AppIdentifierPrefix)com.example.captiveai.shared"
+        # Captive Portals sprechen vor der Anmeldung nur HTTP. Ohne Ausnahme könnte die App sie nicht bedienen.
+        NSAppTransportSecurity:
+          NSAllowsArbitraryLoads: true
         UILaunchScreen: {}
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
@@ -50,6 +54,39 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.example.captiveai
         CODE_SIGN_ENTITLEMENTS: App/CaptiveAI.entitlements
         GENERATE_INFOPLIST_FILE: NO
+  CaptiveAIControls:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: Controls
+      - path: App/Shared
+    dependencies:
+      - package: CaptiveCore
+        product: CaptiveCore
+      - package: CaptiveCore
+        product: CaptiveCoreApple
+    info:
+      path: Controls/Info.plist
+      properties:
+        CFBundleDisplayName: CaptiveAI Steuerelemente
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CaptiveKeychainGroup: "$(AppIdentifierPrefix)com.example.captiveai.shared"
+        NSAppTransportSecurity:
+          NSAllowsArbitraryLoads: true
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    entitlements:
+      path: Controls/CaptiveAIControls.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.com.example.captiveai
+        keychain-access-groups:
+          - $(AppIdentifierPrefix)com.example.captiveai.shared
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.captiveai.controls
+        GENERATE_INFOPLIST_FILE: NO
+        SKIP_INSTALL: YES
   CaptiveUITests:
     type: bundle.ui-testing
     platform: iOS

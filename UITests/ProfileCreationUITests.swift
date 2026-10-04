@@ -33,3 +33,57 @@ final class ProfileCreationUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Hotel_Guest"].firstMatch.exists)
     }
 }
+
+/// Phase-4-Abnahme: Replay gegen tools/test-portal im Simulator (Server auf Port 8099 nötig).
+final class ManualModeUITests: XCTestCase {
+    static let portal = "http://127.0.0.1:8099"
+
+    override func setUp() { continueAfterFailure = false }
+
+    private func resetPortal(_ scenario: String) {
+        let sem = DispatchSemaphore(value: 0)
+        URLSession.shared.dataTask(with: URL(string: "\(Self.portal)/_control/reset?scenario=\(scenario)")!) { _, _, _ in sem.signal() }.resume()
+        _ = sem.wait(timeout: .now() + 5)
+    }
+
+    @MainActor private func launch() -> XCUIApplication {
+        let app = XCUIApplication()
+        app.launchArguments = ["-uitest", "-seedHotel", "-probeURL", "\(Self.portal)/hotspot-detect.html"]
+        app.launch()
+        return app
+    }
+
+    @MainActor private func loginWithRoom(_ app: XCUIApplication) {
+        app.buttons["login-now"].tap()
+        let field = app.textFields["ask-value"]
+        XCTAssertTrue(field.waitForExistence(timeout: 10), "Zimmernummer wird erfragt (P9)")
+        field.tap()
+        field.typeText("417")
+        app.buttons["ask-submit"].tap()
+    }
+
+    @MainActor func testLearnThenReplayWithoutModel() {
+        resetPortal("hotel")
+        let app = launch()
+        XCTAssertTrue(app.staticTexts["Testhotel"].firstMatch.waitForExistence(timeout: 10))
+        app.staticTexts["Testhotel"].firstMatch.tap()
+
+        loginWithRoom(app)
+        let status = app.staticTexts["login-status"]
+        XCTAssertTrue(status.waitForExistence(timeout: 20))
+        XCTAssertTrue(status.label.contains("gelernt"), "Erster Lauf lernt: \(status.label)")
+
+        // Zweiter Lauf: Portal zurücksetzen, Recipe wird ohne Lernen abgespielt.
+        resetPortal("hotel")
+        loginWithRoom(app)
+        let again = app.staticTexts["login-status"]
+        XCTAssertTrue(again.waitForExistence(timeout: 20))
+        let deadline = Date().addingTimeInterval(20)
+        while again.label.contains("gelernt") == false && !again.label.hasPrefix("Angemeldet") && Date() < deadline { usleep(200_000) }
+        XCTAssertTrue(again.label.hasPrefix("Angemeldet"))
+        XCTAssertFalse(again.label.contains("gelernt"), "Zweiter Lauf nutzt das Recipe: \(again.label)")
+
+        app.tabBars.buttons["Aktivität"].tap()
+        XCTAssertTrue(app.otherElements["activity-list"].waitForExistence(timeout: 5) || app.collectionViews["activity-list"].waitForExistence(timeout: 5))
+    }
+}
