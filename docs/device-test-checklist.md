@@ -22,3 +22,11 @@ Punkte, die sich nicht im Simulator oder in CI prüfen lassen (SPEC §7, Regel 5
 - [ ] Gates S0 bis S12 laut `docs/spikes.md`.
 - [ ] `uiRequired` und `presentUI` mit Zimmernummer, keine zweite Anmeldung, Notification ohne sensible Werte.
 - [ ] Drei reale Netztypen: Hotel, öffentlicher Guest-Hotspot, Event-/Enterprise-Guest.
+
+## Politur (Phase 11)
+- [ ] VoiceOver-Durchgang: Profil anlegen, anmelden, Wert abfragen, Export, Import.
+- [ ] Dynamic Type bis AX5: kein abgeschnittener Text in Listen, Formularen und Sheets.
+- [ ] Dark Mode und erhöhter Kontrast.
+- [ ] iPad: Seitenleiste und Detail in Hoch- und Querformat, Drag and Drop einer `.yaml` und `.captiveprofile` auf ein Profil.
+- [ ] Spracheingabe auf Gerät (Deutsch und Englisch), Mikrofon- und Spracherkennungs-Dialoge.
+- [ ] Privacy-Manifest: App-Store-Connect-Validierung ohne Warnung.

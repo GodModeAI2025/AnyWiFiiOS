@@ -10,8 +10,12 @@ struct ActivityView: View {
         NavigationStack {
             Group {
                 if model.runLogs.isEmpty {
-                    ContentUnavailableView("Noch keine Aktivität", systemImage: "clock",
-                                           description: Text("Hier erscheinen Anmeldeversuche und ihr Ergebnis."))
+                    ContentUnavailableView {
+                        Label("Noch keine Aktivität", systemImage: "clock")
+                    } description: {
+                        Text("Hier erscheinen Anmeldeversuche und ihr Ergebnis.")
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                 } else {
                     List {
                         Section("Stabilität") {
@@ -65,8 +69,10 @@ struct StabilityRow: View {
 }
 
 struct RunRow: View {
+    @Environment(AppModel.self) private var model
     let log: RunLog
     let bundle: URL?
+    @State private var showRepair = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -82,11 +88,17 @@ struct RunRow: View {
             Text(LocalizedStringKey(log.outcome.explanation)).font(.subheadline)
             if let r = log.reason, log.outcome != .success { Text(r).font(.caption).foregroundStyle(.secondary) }
             if log.repaired { Label("Automatisch repariert", systemImage: "wrench.and.screwdriver").font(.caption) }
+            if log.outcome == .recipeMismatch, model.repairContext(for: log) != nil {
+                Button("Reparieren", systemImage: "wrench.and.screwdriver") { showRepair = true }
+                    .font(.footnote)
+                    .accessibilityIdentifier("repair-run")
+            }
             if let bundle {
                 ShareLink(item: bundle) { Label("Debug-Paket teilen", systemImage: "square.and.arrow.up") }
                     .font(.footnote)
             }
         }
+        .sheet(isPresented: $showRepair) { RepairCenterView(log: log) }
     }
 }
 

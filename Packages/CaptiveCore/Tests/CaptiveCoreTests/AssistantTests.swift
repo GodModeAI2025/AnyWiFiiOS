@@ -229,3 +229,68 @@ actor FakeAssistant: AssistantModel {
         #expect(await site.log.allSatisfy { $0.method != "POST" })
     }
 }
+
+@Suite struct RepairCenterTests {
+    private func failedRun() async throws -> (PortalProfile, RepairContext) {
+        let secrets = InMemorySecretStore(["hotel.lastName": "Example"])
+        var profile = PortalProfile(name: "Hotel", network: .init(ssidExact: "H"), intent: Kit.hotelIntent, credentialBindings: [Kit.lastNameBinding])
+        let learn = await LoginCoordinator(transport: MockPortalSite(steps: Scenarios.hotel), secrets: secrets).login(profile: profile, askValues: ["roomNumber": "417"])
+        profile = learn.profile
+        let failed = await LoginCoordinator(transport: MockPortalSite(steps: Scenarios.changed), secrets: secrets, repairer: nil)
+            .login(profile: profile, askValues: ["roomNumber": "417"])
+        let ctx = try #require(RepairContext.make(from: failed.result, runId: failed.log.id, profileId: profile.id))
+        return (profile, ctx)
+    }
+
+    @Test func contextIsRedactedAndOnlyForMismatches() async throws {
+        let (_, ctx) = try await failedRun()
+        let json = String(decoding: try JSONEncoder().encode(ctx), as: UTF8.self)
+        #expect(!json.contains("Example"))
+        #expect(!json.contains("417"))
+        #expect(ctx.page.allControls.contains { $0.text == "Join Wi-Fi" })
+        let ok = await Kit.engine(MockPortalSite(steps: Scenarios.clickthrough)).learn(intent: Kit.intent([]), planner: HeuristicPlanner())
+        #expect(RepairContext.make(from: ok, runId: UUID(), profileId: UUID()) == nil)
+    }
+
+    @Test func proposalIsValidatedAndAppliedOnlyOnConfirmation() async throws {
+        let (profile, ctx) = try await failedRun()
+        let model = FakeAssistant()
+        let proposal = try await RepairService.propose(profile: profile, context: ctx, model: model)
+        #expect(RecipeDiff.changeCount(proposal.diff) > 0)
+        #expect(profile.recipeRevision == 1)   // Vorschlag ändert das Profil nicht
+        let updated = RepairService.apply(proposal, to: profile)
+        #expect(updated.recipeRevision == 2)
+        let secrets = InMemorySecretStore(["hotel.lastName": "Example"])
+        let again = await LoginCoordinator(transport: MockPortalSite(steps: Scenarios.changed), secrets: secrets, repairer: nil)
+            .login(profile: updated, askValues: ["roomNumber": "417"])
+        #expect(again.result.outcome == .success)
+    }
+
+    @Test func unavailableOrBadModelsAreHandled() async throws {
+        let (profile, ctx) = try await failedRun()
+        let off = FakeAssistant()
+        await off.setAvailability(.unavailable(.entitlementMissing))
+        await #expect(throws: RepairError.modelUnavailable) { _ = try await RepairService.propose(profile: profile, context: ctx, model: off) }
+
+        let stage = profile.recipe!.stages[0]
+        let idx = stage.actions.firstIndex { if case .tap = $0 { true } else { false } }!
+        guard case .tap(let old) = stage.actions[idx] else { return }
+        var paid = old; paid.labelAny = ["Buy Premium"]
+        let bad = FakeAssistant()
+        await bad.setPatch(RecipePatch(stageId: stage.id, actionIndex: idx, replace: old, with: paid))
+        await #expect(throws: RepairError.self) { _ = try await RepairService.propose(profile: profile, context: ctx, model: bad) }
+
+        var noRecipe = profile; noRecipe.recipe = nil
+        await #expect(throws: RepairError.noRecipe) { _ = try await RepairService.propose(profile: noRecipe, context: ctx, model: FakeAssistant()) }
+    }
+
+    @Test func contextStoreRoundTripAndPrune() async throws {
+        let (_, ctx) = try await failedRun()
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("rc-\(UUID().uuidString)")
+        let store = RepairContextStore(directory: dir)
+        try store.save(ctx)
+        let back = try #require(store.load(runId: ctx.runId))
+        #expect(back.page == ctx.page && back.failedStageId == ctx.failedStageId && back.reason == ctx.reason)
+        #expect(store.load(runId: UUID()) == nil)
+    }
+}

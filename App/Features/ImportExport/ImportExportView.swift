@@ -35,7 +35,10 @@ struct ImportExportView: View {
                                 Spacer()
                                 Image(systemName: "square.and.arrow.up")
                             }
+                            .contentShape(Rectangle())
                         }
+                        .buttonStyle(.plain)
+                        .frame(minHeight: 44)
                         .accessibilityIdentifier("export-\(p.name)")
                     }
                 }

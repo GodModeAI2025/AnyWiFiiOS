@@ -14,6 +14,7 @@ struct ProfileListView: View {
                         Label("Noch kein Profil", systemImage: "wifi.slash")
                     } description: {
                         Text("Lege ein Profil für ein WLAN mit Anmeldeseite an.")
+                            .fixedSize(horizontal: false, vertical: true)
                     } actions: {
                         Button("Neues Profil") { showNew = true }
                             .buttonStyle(.borderedProminent)
@@ -25,8 +26,11 @@ struct ProfileListView: View {
                                 Text(p.name).font(.headline)
                                 Text(p.network.ssidExact).font(.subheadline).foregroundStyle(.secondary)
                             }
-                            .tag(p.id)
+                            .frame(minHeight: 44, alignment: .leading)
+                            .contentShape(Rectangle())
+                            .accessibilityElement(children: .combine)
                             .accessibilityIdentifier("profile-row-\(p.name)")
+                            .tag(p.id)
                         }
                         .onDelete { idx in
                             for i in idx { model.delete(model.profiles[i].id) }
