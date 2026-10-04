@@ -22,6 +22,27 @@ enum AppConfig {
     }
 }
 
+/// Spiegelt Profile ohne Secrets in die App Group, damit die Hotspot-Provider sie lesen können (Phase 9).
+enum SharedProfileMirror {
+    struct Entry: Codable {
+        var id: UUID
+        var ssid: String
+        var enabled: Bool
+        var portalHostHints: [String]
+        var recipeYAML: String?
+    }
+
+    @MainActor
+    static func write(_ profiles: [ProfileRecord]) {
+        guard let url = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: AppConfig.appGroup)?
+            .appendingPathComponent("profiles.json") else { return }
+        let entries = profiles.map {
+            Entry(id: $0.id, ssid: $0.ssid, enabled: $0.enabled, portalHostHints: $0.portalHostHints, recipeYAML: $0.recipeYAML)
+        }
+        try? JSONEncoder().encode(entries).write(to: url, options: [.atomic])
+    }
+}
+
 extension UTType {
     static let captiveProfile = UTType(exportedAs: "com.captiveai.profile")
     static let recipeYAML = UTType(filenameExtension: "yaml") ?? .plainText

@@ -82,6 +82,8 @@ struct RootView: View {
             if case .success(let url) = result { importURL = url }
         }
         .onOpenURL { url in importURL = url }
+        .onAppear { SharedProfileMirror.write(profiles) }
+        .onChange(of: profiles.map(\.updatedAt)) { SharedProfileMirror.write(profiles) }
         .sheet(item: $importURL) { url in
             ImportProfileView(fileURL: url) { profile in selection = .profile(profile.id) }
         }
