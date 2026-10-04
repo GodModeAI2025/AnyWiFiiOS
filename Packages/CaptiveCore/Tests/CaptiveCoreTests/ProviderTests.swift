@@ -112,8 +112,11 @@ private func hotelProfile(recipe: Bool = false, enabled: Bool = true) async -> P
         let key = PendingAuthentication.valueKey(runId: runId, concept: "roomNumber")
         try rig.secrets.write("417", for: key)
         #expect(rig.pending.transition(runId, to: .valueProvided, valueKey: key))
-        let pendingJSON = String(decoding: try Data(contentsOf: rig.pending.directory.appendingPathComponent("\(runId.uuidString).json")), as: UTF8.self)
-        #expect(!pendingJSON.contains("417"))
+        // Strukturell prüfen: UUIDs im JSON können zufällig "417" enthalten.
+        let pendingData = try Data(contentsOf: rig.pending.directory.appendingPathComponent("\(runId.uuidString).json"))
+        let pendingObject = try #require(try JSONSerialization.jsonObject(with: pendingData) as? [String: Any])
+        #expect(!pendingObject.values.contains { ($0 as? String) == "417" })
+        #expect(pendingObject["valueKey"] as? String == key)
 
         let done = await rig.core.presentUI(runId: runId, ssid: "Hotel_Guest", transport: site)
         #expect(done.hotspot == .success)
