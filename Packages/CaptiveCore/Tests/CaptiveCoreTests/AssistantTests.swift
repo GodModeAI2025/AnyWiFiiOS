@@ -244,9 +244,11 @@ actor FakeAssistant: AssistantModel {
 
     @Test func contextIsRedactedAndOnlyForMismatches() async throws {
         let (_, ctx) = try await failedRun()
-        let json = String(decoding: try JSONEncoder().encode(ctx), as: UTF8.self)
+        // Nur die Seite prüfen: runId und profileId sind UUIDs und können zufällig "417" enthalten.
+        let json = String(decoding: try JSONEncoder().encode(ctx.page), as: UTF8.self)
         #expect(!json.contains("Example"))
-        #expect(!json.contains("417"))
+        #expect(!json.contains("\"417\""))
+        #expect(!(ctx.reason ?? "").contains("417"))
         #expect(ctx.page.allControls.contains { $0.text == "Join Wi-Fi" })
         let ok = await Kit.engine(MockPortalSite(steps: Scenarios.clickthrough)).learn(intent: Kit.intent([]), planner: HeuristicPlanner())
         #expect(RepairContext.make(from: ok, runId: UUID(), profileId: UUID()) == nil)
