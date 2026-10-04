@@ -1,0 +1,14 @@
+name: CI
+on:
+  push:
+  pull_request:
+
+jobs:
+  core-linux:
+    runs-on: ubuntu-latest
+    container: swift:6.0
+    steps:
+      - uses: actions/checkout@v4
+      - name: swift test (CaptiveCore)
+        working-directory: Packages/CaptiveCore
+        run: swift test
