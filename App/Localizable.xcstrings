@@ -1,0 +1,31 @@
+{
+  "sourceLanguage" : "de",
+  "strings" : {
+    "Jetzt im WLAN anmelden" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Log in to Wi-Fi now" } }
+      }
+    },
+    "Neues Profil" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "New Profile" } }
+      }
+    },
+    "WLAN-Profile" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Wi-Fi Profiles" } }
+      }
+    },
+    "Aktivität" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Activity" } }
+      }
+    },
+    "Einstellungen" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Settings" } }
+      }
+    }
+  },
+  "version" : "1.0"
+}

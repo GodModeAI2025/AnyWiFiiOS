@@ -4,7 +4,7 @@ iOS/iPadOS-App, die Captive-Portal-Anmeldungen (Hotel, Bahn, Café …) lernt un
 Lokal mit Apple Intelligence, mit teilbaren WLAN-Profilen.
 
 **Spezifikation:** [`SPEC.md`](SPEC.md) (Leitdokument) → [`docs/spec/`](docs/spec/) (Basis)
-**Stand:** Vorbereitung Phase 1, siehe `SPEC.md` §5
+**Stand:** siehe [`docs/status.md`](docs/status.md) (Phasen, DoD, offene Gerätetests)
 
 ## Was schon da ist
 
@@ -17,10 +17,17 @@ Lokal mit Apple Intelligence, mit teilbaren WLAN-Profilen.
 | `tools/test-portal` | lokales Fake-Captive-Portal mit Server-Log | Python 3, ohne Abhängigkeiten |
 | `tools/prl/validate_recipes.py` | Recipes gegen das Schema prüfen | Python 3 + pyyaml, jsonschema |
 | `docs/entitlement-antraege.md` | Checkliste für die Apple-Anträge | – |
+| `Packages/CaptiveCore/Sources/CaptiveCoreApple` | Foundation-Models-Planner, Chat, Keychain, WLAN-/Hotspot-Transport | iOS/macOS |
+| `App/` | SwiftUI-App (Profile, Chat, Login, Teilen, Aktivität, Kurzbefehl) | iOS (XcodeGen: `project.yml`) |
+| `Extensions/` | Hotspot-Provider (noch nicht im Projekt, Spike S0) | iOS |
+| `UITests/` | End-to-End-Test: Chat → Lernen → Login gegen `tools/test-portal` | iOS-Simulator |
 
 ## Schnellstart
 
 ```bash
+# App erzeugen und öffnen (macOS mit Xcode)
+xcodegen generate && open CaptiveAI.xcodeproj
+
 # Kernlogik testen
 cd Packages/CaptiveCore && swift test
 
