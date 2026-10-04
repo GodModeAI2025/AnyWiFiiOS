@@ -15,6 +15,7 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/jpsim/Yams.git", from: "5.1.0"),
         .package(url: "https://github.com/scinfu/SwiftSoup.git", from: "2.7.0"),
+        .package(url: "https://github.com/apple/swift-crypto.git", "3.0.0" ..< "5.0.0"),
     ],
     targets: [
         .target(
@@ -22,7 +23,9 @@ let package = Package(
             dependencies: [
                 .product(name: "Yams", package: "Yams"),
                 .product(name: "SwiftSoup", package: "SwiftSoup"),
-            ]
+                .product(name: "Crypto", package: "swift-crypto"),
+            ],
+            resources: [.copy("Resources/prl-v1.schema.json")]
         ),
         .testTarget(
             name: "CaptiveCoreTests",

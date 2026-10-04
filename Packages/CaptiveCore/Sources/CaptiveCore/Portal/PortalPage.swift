@@ -2,7 +2,7 @@ import Foundation
 
 /// Normalisierte Portalseite (01 §11). Alles, was Engine, Matcher und AI sehen, kommt aus diesem Modell.
 /// Kein Produktcode außerhalb des Normalizers kennt den HTML-Parser (01 §17.2).
-public struct PortalPage: Sendable, Equatable {
+public struct PortalPage: Sendable, Equatable, Codable {
     public var url: URL
     public var title: String
     public var forms: [PortalForm]
@@ -50,7 +50,7 @@ public struct PortalPage: Sendable, Equatable {
     public var searchableText: String { (title + " " + text).lowercased() }
 }
 
-public struct PortalForm: Sendable, Equatable {
+public struct PortalForm: Sendable, Equatable, Codable {
     public var index: Int
     public var htmlId: String?
     public var method: String
@@ -68,8 +68,8 @@ public struct PortalForm: Sendable, Equatable {
     public var submitButtons: [PortalControl] { controls.filter(\.isSubmit) }
 }
 
-public struct PortalControl: Sendable, Equatable, Identifiable {
-    public struct Option: Sendable, Equatable {
+public struct PortalControl: Sendable, Equatable, Identifiable, Codable {
+    public struct Option: Sendable, Equatable, Codable {
         public var label: String
         public var value: String
         public var selected: Bool

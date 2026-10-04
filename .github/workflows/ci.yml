@@ -34,5 +34,7 @@ jobs:
         run: python -m unittest discover -s tools/test-portal -v
       - name: PRL-Fixtures gegen Schema
         run: python tools/prl/validate_recipes.py
+      - name: Schema-Kopie im Paket ist aktuell
+        run: cmp Schemas/prl-v1.schema.json Packages/CaptiveCore/Sources/CaptiveCore/Resources/prl-v1.schema.json
 
   # app-macos (xcodegen + xcodebuild) folgt mit Phase 3, sobald project.yml existiert.

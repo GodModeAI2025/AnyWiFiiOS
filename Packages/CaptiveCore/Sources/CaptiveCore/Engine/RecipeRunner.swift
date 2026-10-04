@@ -506,7 +506,12 @@ final class RunContext {
     var session: PortalHTTPSession
     var trace = RunTrace()
     var trusted: Set<String> = []
-    var page: PortalPage?
+    var page: PortalPage? {
+        didSet {
+            if let page, page != visited.last { visited.append(page) }
+        }
+    }
+    private(set) var visited: [PortalPage] = []
     var failedStage: String?
     var failedAction: Int?
 
@@ -516,7 +521,7 @@ final class RunContext {
 
     func result(_ reason: RunReason) -> RunResult {
         trace.record(.outcome, "\(reason.outcome.rawValue): \(reason)")
-        return RunResult(reason: reason, trace: trace, lastPage: page,
+        return RunResult(reason: reason, trace: trace, visitedPages: visited,
                          failedStageId: failedStage, failedActionIndex: failedAction)
     }
 }

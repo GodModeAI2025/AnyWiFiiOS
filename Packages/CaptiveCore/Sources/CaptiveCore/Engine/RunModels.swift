@@ -63,8 +63,10 @@ public enum RunReason: Error, Equatable, Sendable {
 public struct RunResult: Sendable {
     public var reason: RunReason
     public var trace: RunTrace
-    /// Letzte normalisierte Seite (für Debug-Paket und Repair). Enthält keine eingegebenen Werte.
-    public var lastPage: PortalPage?
+    /// Alle normalisierten Seiten dieses Laufs in Reihenfolge (für Debug-Paket und Repair).
+    /// Enthalten nur Werte aus dem Portal-HTML, nie eingegebene Werte.
+    public var visitedPages: [PortalPage]
+    public var lastPage: PortalPage? { visitedPages.last }
     public var failedStageId: String?
     public var failedActionIndex: Int?
 
