@@ -60,8 +60,10 @@ jobs:
       - uses: actions/checkout@v4
       - name: XcodeGen installieren
         run: brew install xcodegen
-      - name: Projekt erzeugen
-        run: xcodegen generate
+      - name: Projekt erzeugen (CI-Deployment-Target 26.0, siehe Kommentar unten)
+        run: |
+          sed -i '' 's/iOS: "27.0"/iOS: "26.0"/' project.yml
+          xcodegen generate
       # Die Runner haben (Stand 10/2026) nur das iOS-26-SDK. Die App zielt auf iOS 27 (SPEC §3.6),
       # nutzt aber nur APIs aus iOS 26. Deshalb wird hier mit Deployment-Target 26.0 kompiliert.
       - name: Build
@@ -78,7 +80,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: brew install xcodegen
-      - run: xcodegen generate
+      - name: Projekt erzeugen (CI-Deployment-Target 26.0)
+        run: |
+          sed -i '' 's/iOS: "27.0"/iOS: "26.0"/' project.yml
+          xcodegen generate
       - name: Testportal starten
         run: |
           nohup python3 tools/test-portal/test_portal.py --host 127.0.0.1 --port 8080 --portal 02_terms --log portal.jsonl > portal.out 2>&1 &
