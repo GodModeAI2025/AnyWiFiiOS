@@ -19,9 +19,11 @@ public enum PortalAction: Codable, Equatable, Sendable {
     case waitFor(WaitCondition)
     case verify(VerifyCondition)
     case stop(StopAction)
+    /// Fest eingebauter Portal-Adapter (ADR 0001). Kein freier Code: nur eine ID aus der Registry.
+    case adapter(AdapterAction)
 
     public enum Opcode: String, CaseIterable, Sendable {
-        case fill, check, uncheck, select, tap, submit, requestValue, waitFor, verify, stop
+        case fill, check, uncheck, select, tap, submit, requestValue, waitFor, verify, stop, adapter
     }
 
     public var opcode: Opcode {
@@ -36,6 +38,7 @@ public enum PortalAction: Codable, Equatable, Sendable {
         case .waitFor: .waitFor
         case .verify: .verify
         case .stop: .stop
+        case .adapter: .adapter
         }
     }
 
@@ -47,7 +50,7 @@ public enum PortalAction: Codable, Equatable, Sendable {
         case .select(let a): return a.target
         case .submit(let a): return a.target
         case .waitFor(let w): return w.element
-        case .requestValue, .verify, .stop: return nil
+        case .requestValue, .verify, .stop, .adapter: return nil
         }
     }
 
@@ -67,6 +70,7 @@ public enum PortalAction: Codable, Equatable, Sendable {
         case .waitFor: self = .waitFor(try c.decode(WaitCondition.self, forKey: key))
         case .verify: self = .verify(try c.decode(VerifyCondition.self, forKey: key))
         case .stop: self = .stop(try c.decode(StopAction.self, forKey: key))
+        case .adapter: self = .adapter(try c.decode(AdapterAction.self, forKey: key))
         }
     }
 
@@ -82,6 +86,7 @@ public enum PortalAction: Codable, Equatable, Sendable {
         case .waitFor(let a): try c.encode(a, forKey: key)
         case .verify(let a): try c.encode(a, forKey: key)
         case .stop(let a): try c.encode(a, forKey: key)
+        case .adapter(let a): try c.encode(a, forKey: key)
         }
     }
 }
@@ -262,5 +267,18 @@ public struct StopAction: Codable, Equatable, Sendable {
     public init(from decoder: Decoder) throws {
         try decoder.rejectUnknownKeys(CodingKeys.self)
         outcome = try decoder.container(keyedBy: CodingKeys.self).decode(StopOutcome.self, forKey: .outcome)
+    }
+}
+
+public struct AdapterAction: Codable, Equatable, Sendable {
+    public var id: String
+
+    public init(id: String) { self.id = id }
+
+    enum CodingKeys: String, CodingKey, CaseIterable { case id }
+
+    public init(from decoder: Decoder) throws {
+        try decoder.rejectUnknownKeys(CodingKeys.self)
+        id = try decoder.container(keyedBy: CodingKeys.self).decode(String.self, forKey: .id)
     }
 }

@@ -96,6 +96,11 @@ Lehnt Apple das Entitlement ab oder ist es noch nicht erteilt, bleibt die App tr
 - **Neues Spike-Gate S13:** Klären, ob im Captive-Zustand Requests aus der App mit `allowsCellularAccess = false` zuverlässig über das WLAN-Interface laufen, ob der System-CNA-Dialog stört und ob ein Login aus der App den CNA-Zustand auflöst. Ergebnis in den Spike-Bericht.
 - **Ergebnis E** (Erweiterung 02 §25): Entitlement abgelehnt → Produkt = Manueller Modus + alle übrigen Features. Kein Abbruchkriterium.
 
+### 3.7 Portal-Adapter & Runtime-Regeln (ergänzt 01 §9, §17; Details: ADR 0001)
+- Bekannte Portalsysteme ohne verwertbares HTML-Formular (DB ICE/Icomera JSON, SNCF, MikroTik CHAP) bedient ein fest eingebauter **Portal-Adapter**. Das Recipe verweist nur per `- adapter: { id: … }` darauf.
+- Die Engine übernimmt Query-Parameter der Portal-URL, wählt vorausgewählte Marketing-Haken ab, blockiert kommerzielle Elemente und prüft vor dem Login, ob das Gerät schon online ist.
+- Recherche-Grundlage: `docs/research/portale-bahn-hotel.md`.
+
 ### 3.6 Plattform & Name
 - Mindestversion **iOS/iPadOS 27** (wie 01 §3.1).
 - Produkt-/Target-Name **CaptiveAI** (wie 01 §6). Das Repo heißt weiterhin `AnyWiFiiOS`. Bundle-ID-Präfix liefert der Auftraggeber (§8). Bis dahin gilt der Platzhalter `com.example.captiveai`.

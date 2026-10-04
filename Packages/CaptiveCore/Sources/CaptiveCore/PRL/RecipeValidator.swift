@@ -114,6 +114,11 @@ public struct RecipeValidator: Sendable {
                 add(.timeoutOutOfRange, path, "timeoutSeconds \(t) außerhalb 1…\(limits.maxWaitSeconds)")
             }
 
+        case .adapter(let a):
+            if !PortalAdapterRegistry.knownIDs.contains(a.id) {
+                add(.unknownAdapter, path, "Unbekannter Portal-Adapter '\(a.id)'")
+            }
+
         case .requestValue, .verify, .stop:
             break
         }
@@ -169,6 +174,7 @@ public struct ValidationIssue: Equatable, Sendable, CustomStringConvertible {
         case commercialAction, optionalConsentWithoutPermission
         case timeoutOutOfRange
         case scriptContent
+        case unknownAdapter
     }
 
     public let code: Code
@@ -258,6 +264,8 @@ extension Recipe {
                     for text in (w.pageContainsAny ?? []) { out.append(("\(ap).waitFor", text)) }
                 case .verify(let v):
                     out += (v.pageContainsAny ?? []).map { ("\(ap).verify", $0) }
+                case .adapter(let a):
+                    out.append(("\(ap).adapter", a.id))
                 case .check, .uncheck, .tap, .submit, .stop:
                     break
                 }

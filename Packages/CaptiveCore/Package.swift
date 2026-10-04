@@ -14,11 +14,15 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/jpsim/Yams.git", from: "5.1.0"),
+        .package(url: "https://github.com/scinfu/SwiftSoup.git", from: "2.7.0"),
     ],
     targets: [
         .target(
             name: "CaptiveCore",
-            dependencies: [.product(name: "Yams", package: "Yams")]
+            dependencies: [
+                .product(name: "Yams", package: "Yams"),
+                .product(name: "SwiftSoup", package: "SwiftSoup"),
+            ]
         ),
         .testTarget(
             name: "CaptiveCoreTests",
