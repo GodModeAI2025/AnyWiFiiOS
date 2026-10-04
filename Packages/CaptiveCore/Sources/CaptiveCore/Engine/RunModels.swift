@@ -38,6 +38,8 @@ public enum RunReason: Error, Equatable, Sendable {
     case conditionNotMet(stage: String, action: Int)
     case stopRequested(StopOutcome)
     case roundLimitReached
+    case modelUnavailable
+    case planRejected(String)
 
     public var outcome: RunOutcome {
         switch self {
@@ -49,6 +51,8 @@ public enum RunReason: Error, Equatable, Sendable {
         case .tooManyRedirects, .responseTooLarge, .transport: .networkError
         case .unknownAdapter: .unsupportedPortal
         case .adapterFailed: .temporaryFailure
+        case .modelUnavailable: .aiUnavailable
+        case .planRejected: .aiRejectedPlan
         case .stopRequested(let stop):
             switch stop {
             case .success: .success

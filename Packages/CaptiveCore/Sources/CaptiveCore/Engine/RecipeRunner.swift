@@ -143,7 +143,7 @@ public struct RecipeRunner: Sendable {
         var lastFormIndex: Int?
     }
 
-    private func runStage(_ stage: Stage, page: PortalPage, _ ctx: RunContext) async throws -> StageResult {
+    func runStage(_ stage: Stage, page: PortalPage, _ ctx: RunContext) async throws -> StageResult {
         var form = FormState()
         let actions: [(Int, PortalAction)] = stage.actions.enumerated().map { ($0.offset, $0.element) }
 
@@ -393,7 +393,7 @@ public struct RecipeRunner: Sendable {
 
     // MARK: - Hilfen
 
-    private func load(_ response: PortalResponse, _ ctx: RunContext) async throws -> PortalPage {
+    func load(_ response: PortalResponse, _ ctx: RunContext) async throws -> PortalPage {
         var page = try PortalNormalizer.normalize(html: response.text, url: response.url)
         var hops = 0
         while let target = page.metaRefresh, hops < maxMetaRefreshes, page.interactiveControls.isEmpty {
@@ -408,7 +408,7 @@ public struct RecipeRunner: Sendable {
         return page
     }
 
-    private func isOnlineNow(_ ctx: RunContext) async throws -> Bool {
+    func isOnlineNow(_ ctx: RunContext) async throws -> Bool {
         let probe = try await ctx.session.get(probeURL)
         ctx.trace.record(.probe, "Probe → \(Self.statusChain(probe))")
         return Self.isOnline(probe)
