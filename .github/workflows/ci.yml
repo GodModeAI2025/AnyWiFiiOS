@@ -37,4 +37,18 @@ jobs:
       - name: Schema-Kopie im Paket ist aktuell
         run: cmp Schemas/prl-v1.schema.json Packages/CaptiveCore/Sources/CaptiveCore/Resources/prl-v1.schema.json
 
-  # app-macos (xcodegen + xcodebuild) folgt mit Phase 3, sobald project.yml existiert.
+  core-macos:
+    name: CaptiveCore (swift test, macOS) + Toolchain-Info
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Toolchain-Info
+        run: |
+          sw_vers
+          xcodebuild -version
+          ls /Applications | grep -i xcode || true
+          xcrun --sdk iphonesimulator --show-sdk-version || true
+          swift --version
+      - name: swift test
+        working-directory: Packages/CaptiveCore
+        run: swift test --parallel
