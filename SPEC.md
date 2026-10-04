@@ -1,335 +1,200 @@
-# AnyWiFi für iOS: Spezifikation für den Coding-Agent
+# CaptiveAI (Repo: AnyWiFiiOS): Leitdokument für den Coding-Agent
 
-> **Zweck dieses Dokuments:** Ein Coding-Agent soll die App ohne Rückfragen umsetzen können.
-> Alles, was technisch unsicher ist, steht in **Phase 0 (Spikes)** und muss *vor* der Feature-Arbeit geklärt werden.
-> Abschnitte mit **MUSS** sind verbindlich, **SOLL** ist empfohlen, **KANN** ist optional.
+> **Lies zuerst dieses Dokument, dann `docs/spec/01_*` und `docs/spec/02_*`.**
+> Die Spezifikationen in `docs/spec/` sind die **fachliche und technische Basis**.
+> Dieses Dokument **ergänzt** sie um Anforderungen des Auftraggebers, die dort fehlen, und **entscheidet Konflikte**.
+> **Bei Widerspruch gilt dieses Dokument.** Abschnittsverweise wie „01 §21“ meinen `docs/spec/01_CaptiveAI_App_Spezifikation.md`, Abschnitt 21.
 
----
-
-## 1. Ursprüngliche Anforderung (bereinigt)
-
-Original des Auftraggebers, Diktierfehler korrigiert:
-
-> Eine App nur für **iOS und iPadOS**. Die App verwaltet **WLAN-Profile** und bietet **Auto-Login für Captive-Portal-WLANs** (Hotel, Bahn, Café, Flughafen …).
-> Über **Apple Intelligence** (lokal bzw. Private Cloud Compute) bespricht der Nutzer im **Chat**, wie die Anmeldung im aktuellen WLAN abläuft, z. B. „Drücke Button X“, „Trage A und B in die Felder ein“, „Hake die AGB an“. Das System führt die Anmeldung dann selbst aus.
-> Klappt es, speichert das System den Ablauf als **Profil** und meldet sich künftig automatisch an.
-> Klappt es nicht, erzeugt die App ein **Debug-Paket**, mit dem man weiter debuggen kann, bis der Ablauf stabil läuft.
-> Profile sollen **teilbar** sein. Enthalten sie Benutzername/Passwort, ist das Teilen **ausdrücklich erlaubt** (Opt-in).
-
-Glossar: *Recipe* = gespeicherter, deterministischer Login-Ablauf. *Profil* = WLAN-Daten + Recipe + Variablen. *Portal* = Captive-Portal-Webseite.
+Stand: 4. Oktober 2026
 
 ---
 
-## 2. Technische Realität: verbindliche Leitplanken
+## 1. Dokumente & Rangfolge
 
-Diese Punkte entscheiden die Architektur. Der Agent darf sie **nicht** ignorieren.
-
-### 2.1 Apple Intelligence / Private Cloud Compute
-- Drittanbieter-Apps haben über das **Foundation Models Framework** (ab iOS 26) Zugriff auf das **On-Device-Sprachmodell** (`LanguageModelSession`, `@Generable`, Tool Calling).
-- **Private Cloud Compute ist für Drittanbieter-Apps (Stand Wissensstand des Autors) nicht direkt per API ansprechbar.** → In Phase 0 prüfen, ob das aktuelle SDK das inzwischen erlaubt.
-- **MUSS:** Die LLM-Anbindung liegt hinter einem Protokoll `AssistantModel`. Standardimplementierung: `FoundationModelsAssistant` (on-device). Eine spätere PCC- oder andere Implementierung lässt sich dann ohne Umbau einhängen.
-- **MUSS:** Das On-Device-Modell hat ein **kleines Kontextfenster (ca. 4k Tokens)**. Deshalb gehen keine rohen HTML-Seiten in den Prompt, sondern nur ein komprimierter Snapshot (siehe 5.3).
-- **MUSS:** Läuft das Gerät ohne Apple Intelligence (`SystemLanguageModel.default.availability != .available`), gibt es einen **manuellen Recipe-Editor** (Schritt-Liste per Tippen/Auswählen) und einen **Aufzeichnungsmodus** (Nutzer klickt selbst, die App zeichnet auf). Die App bleibt so voll nutzbar.
-
-### 2.2 Captive-Portal-Login: zwei Ausbaustufen
-iOS erlaubt nicht ohne Weiteres, dass eine App den systemeigenen Captive-Portal-Dialog (Captive Network Assistant, CNA) übernimmt. Darum gibt es zwei Stufen:
-
-| | **Stufe A: MVP (ohne Sonder-Entitlement)** | **Stufe B: echter Auto-Login** |
+| Rang | Datei | Inhalt |
 |---|---|---|
-| API | `NEHotspotConfigurationManager` (WLAN speichern/beitreten) + `WKWebView` in der App | `NEHotspotHelper` |
-| Entitlement | `com.apple.developer.networking.HotspotConfiguration` (Self-Service in Xcode) | `com.apple.developer.networking.HotspotHelper`, **muss bei Apple beantragt werden**, Genehmigung unsicher |
-| Ablauf | Nutzer öffnet App / Kurzbefehl / Widget → App erkennt Portal → führt Recipe im WebView aus | System ruft App bei Netzwechsel im Hintergrund auf (`evaluate`/`authenticate`) → App loggt sich headless per HTTP ein, CNA erscheint nicht |
-| Recipe-Typ | DOM-Recipe (Klicks/Eingaben im WebView) | HTTP-Recipe (Requests per `NSMutableURLRequest.bind(to: command)`) |
+| 1 | `SPEC.md` (dieses Dokument) | Ergänzungen, Konfliktentscheidungen, Build-/Agent-Regeln |
+| 2 | `docs/spec/01_CaptiveAI_App_Spezifikation.md` | Produkt & Architektur (NEHotspotManager-Provider, PRL-Recipes, Normalizer, Sicherheit) |
+| 3 | `docs/spec/02_CaptiveAI_Spike_und_Testplan.md` | Spike-Gates S0–S12, Fixtures, Testplan |
+| – | `docs/spec/00_README.md` | Quellenübersicht |
 
-- **MUSS:** Zuerst Stufe A komplett umsetzen. Stufe B als eigenes Modul `HotspotHelperExtension`, hinter Feature-Flag, aktiv nur wenn das Entitlement vorhanden ist.
-- **MUSS:** Das Recipe-Format unterstützt beide Typen. Beim Lernen im WebView zeichnet die App zusätzlich den **finalen Login-Request** auf (Methode, URL, Formfelder) und leitet daraus ein HTTP-Recipe ab, damit Stufe B später ohne Neu-Lernen funktioniert.
-- Hinweis: Die in iOS 14 eingeführte Unterstützung für die Captive-Portal-API (RFC 8908/8910) betrifft Netzbetreiber, die die Portal-URL per DHCP/RA melden. Sie liefert **keinen** App-Auto-Login, kann aber die Portal-Erkennung verbessern, wenn das Netz sie unterstützt.
-
-### 2.3 Weitere Plattform-Fakten
-- SSID/BSSID auslesen (`NEHotspotNetwork.fetchCurrent`) braucht das Entitlement **Access WiFi Information** *und* entweder Standortfreigabe oder ein Netz, das die App selbst per `NEHotspotConfiguration` angelegt hat.
-- Im **Simulator gibt es kein WLAN**. Recipe-Engine und Chat werden gegen lokale Test-Portale getestet (Abschnitt 9), echte WLAN-Funktionen nur auf Gerät.
-- Solange das WLAN im Captive-Zustand ist, kann iOS App-Traffic über Mobilfunk leiten. → Phase-0-Spike: sicherstellen, dass Portal-Requests über WLAN gehen (`URLSessionConfiguration.allowsCellularAccess = false`, prüfen, wie sich `WKWebView` verhält).
+Geprüfte Apple-Fakten (Apple-Doku, 04.10.2026): `NEHotspotManager`, `NEHotspotEvaluationProvider` und `NEHotspotAuthenticationProvider` gibt es ab iOS/iPadOS 26. Foundation Models gibt es ab iOS 26. Private Cloud Compute ist für Drittanbieter nutzbar, braucht aber das Entitlement `com.apple.developer.private-cloud-compute` und setzt die Teilnahme am App Store Small Business Program voraus (< 2 Mio. Erst-Downloads).
 
 ---
 
-## 3. Zielplattform & Tech-Stack (MUSS)
+## 2. Ursprüngliche Anforderung des Auftraggebers (Abgleich)
 
-| Thema | Vorgabe |
-|---|---|
-| Plattformen | iPhone + iPad (Universal-App). **Kein** macOS/Catalyst/visionOS. |
-| Minimum | iOS/iPadOS 26.0 (Foundation Models). Apple-Intelligence-fähige Geräte für den Chat; Rest läuft auch ohne. |
-| Sprache | Swift 6, Strict Concurrency an |
-| UI | SwiftUI, `NavigationSplitView` (iPad: Sidebar, iPhone: Stack) |
-| Persistenz | SwiftData für Profile; **Secrets ausschließlich im Keychain** |
-| Abhängigkeiten | Keine Third-Party-Pakete ohne Begründung. ZIP: `AppleArchive` oder eine minimale eigene ZIP-Schreibroutine |
-| Sprachen | Deutsch (primär), Englisch; String Catalog (`Localizable.xcstrings`) |
-| Projekt | Xcode-Projekt per **XcodeGen** (`project.yml` im Repo), damit es reproduzierbar ist |
-| CI | GitHub Actions auf `macos-latest`: Build + Unit-Tests + UI-Tests gegen Test-Portale |
-
----
-
-## 4. Funktionsumfang
-
-### 4.1 Profile verwalten (MUSS)
-- Liste aller Profile mit Status (zuletzt erfolgreich, Fehlerquote, Stufe A/B-fähig).
-- Profil anlegen, bearbeiten, duplizieren, löschen.
-- WLAN-Teil: SSID, Sicherheit (offen / WPA2/3-Personal; WPA-Enterprise **KANN** später), Passwort → per `NEHotspotConfiguration` im System hinterlegen (Button „WLAN installieren“).
-- Portal-Teil: Recipe, Variablen (z. B. `roomNumber`, `lastName`, `voucher`, `username`, `password`), Erfolgs-Check.
-- Matching: Ein Profil passt zu einem Netz über SSID (exakt oder Muster, z. B. `WIFIonICE*`) und optional Portal-Host.
-
-### 4.2 Portal erkennen & einloggen (MUSS)
-1. Trigger: App-Start, Rückkehr in den Vordergrund, App Intent „Im WLAN anmelden“ (für Kurzbefehle/Automationen, z. B. „Wenn mit WLAN X verbunden“), Widget/Control-Center-Steuerelement.
-2. Erkennung: HTTP-GET auf `http://captive.apple.com/hotspot-detect.html`. Antwort mit `Success` → online. Sonst Redirect/HTML → Portal-URL ermitteln (letzte Redirect-URL bzw. Meta-Refresh/JS-Redirect im WebView).
-3. Passendes Profil gefunden → Recipe ausführen (Abschnitt 6) → Erfolgs-Check → Ergebnis anzeigen (Erfolg / Fehler + Debug-Paket).
-4. Kein Profil → Angebot: „Anmeldung im Chat einrichten“.
-
-### 4.3 Chat-Assistent zum Einrichten (MUSS, mit Fallback aus 2.1)
-- Split-Ansicht: oben/links das **Portal im WebView**, unten/rechts der **Chat**.
-- Der Nutzer beschreibt in natürlicher Sprache, was zu tun ist. Das Modell sieht einen komprimierten Seiten-Snapshot und ruft **Tools** auf (Abschnitt 5.2). Jede Aktion wird im WebView sichtbar ausgeführt und hervorgehoben.
-- Bei Unklarheit fragt das Modell nach („Meinst du ‚Kostenlos verbinden‘ oder ‚Premium‘?“).
-- Werte wie Zimmernummer oder Passwort fragt die App über ein **separates, sicheres Eingabefeld** ab. Sie landen als Variable im Keychain und **nie im Prompt** (siehe 5.4).
-- Nach erfolgreichem Login: Zusammenfassung des Recipes anzeigen („1. Checkbox AGB anhaken, 2. Nachname eintragen, 3. ‚Verbinden‘ tippen“) → Nutzer bestätigt → Profil speichern.
-- **SOLL:** Aufzeichnungsmodus („Ich zeig’s dir“): Nutzer bedient das Portal selbst, die App protokolliert Klicks/Eingaben als Recipe-Schritte.
-
-### 4.4 Fehlschlag → Debug-Paket & Reparatur (MUSS)
-- Schlägt ein Login fehl, erzeugt die App automatisch ein **Debug-Paket** (Abschnitt 7).
-- Aktionen: „Teilen“ (Share Sheet), „Im Chat reparieren“ (Chat startet mit Fehlerkontext: welcher Schritt, welcher Selektor fehlte, aktueller Snapshot), „Erneut versuchen“.
-- Das Debug-Paket ist so aufgebaut, dass ein **externer Coding-/KI-Agent** (z. B. Claude Code) es lesen und daraus ein korrigiertes Recipe-JSON erzeugen kann. Dieses JSON lässt sich wieder importieren. Dieser Kreislauf läuft, bis das Recipe stabil ist.
-- Stabilitäts-Metrik pro Profil: Anzahl Ausführungen, Erfolge, letzte 10 Ergebnisse. Ein Profil gilt als „stabil“ ab 5 Erfolgen in Folge.
-
-### 4.5 Teilen & Import (MUSS)
-- Export als Datei `*.anywifi` (eigener `UTType` `com.anywifi.profile`, konform zu `public.json`), Weitergabe per `ShareLink` (AirDrop, Nachrichten, Mail, Dateien).
-- Import: Datei öffnen / „Öffnen mit AnyWiFi“ / Drag & Drop (iPad) → Vorschau mit Übersicht der Schritte und Hinweis auf enthaltene Zugangsdaten → „Importieren“.
-- **Zugangsdaten:** Standardmäßig **nicht** im Export. Schalter „Zugangsdaten mitteilen“ mit Bestätigungsdialog („Empfänger können dein Passwort sehen“). Der Auftraggeber erlaubt das ausdrücklich, das Opt-in bleibt aber pro Export erhalten.
-- **SOLL:** Optionaler Passwortschutz für die Exportdatei (AES-GCM via CryptoKit, Schlüssel per PBKDF2 aus Passphrase, ≥ 200 000 Iterationen, Salt in der Datei).
-- **KANN:** QR-Code für den WLAN-Teil (`WIFI:T:WPA;S:<ssid>;P:<pw>;;`) und für kleine Profile (komprimiert).
-- **MUSS:** Importierte Recipes werden validiert (Schema, erlaubte Aktionen, keine Fremd-Domains außer Portal-Host-Liste). Vor der ersten Ausführung eines importierten Recipes fragt die App einmal nach Bestätigung.
+| # | Anforderung | Abgedeckt durch | Status |
+|---|---|---|---|
+| A1 | Nur iOS & iPadOS | 01 §3.1 | ✅ |
+| A2 | App beherbergt **WLAN-Profile** | 01 §32 nur als V1.1 | ⚠️ **in V1 gezogen**, siehe §3.1 |
+| A3 | Auto-Login für Captive-Portal-WLANs | 01 §2, §26–28 (Hotspot-Provider) | ✅, ⚠️ Fallback ohne Entitlement fehlt → §3.5 |
+| A4 | Mit Apple Intelligence (lokal / PCC) **im Chat** besprechen, wie die Anmeldung abläuft | 01 §4.2–4.3 (einmalige Beschreibung + Zusammenfassung) | ⚠️ **zum Dialog erweitert**, siehe §3.2 |
+| A5 | System meldet sich selbst an und speichert den Ablauf als Profil | 01 §12–13 | ✅ |
+| A6 | Bei Fehlschlag **Debug-Paket**, damit iterativ debuggt werden kann, bis es stabil läuft | 01 §22.3 (Debug Bundle) | ⚠️ **erweitert** um Agent-Lesbarkeit, Re-Import & Stabilitätsmetrik, siehe §3.3 |
+| A7 | Profile **teilen** | 01 §21 | ✅ |
+| A8 | Zugangsdaten beim Teilen **ausdrücklich erlaubt** | 01 §21.2 schließt Secrets im Export immer aus | ❌ **Konflikt**, entschieden in §3.4 |
 
 ---
 
-## 5. KI-Assistent: Design
+## 3. Ergänzungen & Konfliktentscheidungen (verbindlich)
 
-### 5.1 Ablauf einer Chat-Runde
+### 3.1 WLAN-Konfiguration ist Teil von V1 (überschreibt 01 §32)
+- Ein Profil **kann** einen WLAN-Teil enthalten: SSID, Sicherheit (offen / WPA2/WPA3-Personal), Passphrase (Keychain).
+- Button „WLAN auf diesem Gerät einrichten“ legt das Netz per `NEHotspotConfigurationManager.apply(_:)` an. Entitlement: `com.apple.developer.networking.HotspotConfiguration` (Self-Service).
+- WPA-Enterprise, Scannen und Ortung bleiben Nicht-Ziele (01 §33).
+- **KANN:** QR-Code für den WLAN-Teil (`WIFI:T:WPA;S:<ssid>;P:<pw>;;`), nur nach dem Opt-in aus §3.4.
+
+### 3.2 Chat-Assistent statt Einmal-Beschreibung (erweitert 01 §4.2, §16.1, §29)
+Der Nutzer soll mit dem System **im Dialog** klären, wie die Anmeldung abläuft.
+- **Profil-Chat** (Haupt-App): mehrstufiges Gespräch per Text oder Sprache (SpeechAnalyzer, 01 §4.3). Das Modell stellt Rückfragen, bis ein vollständiger `PortalIntentDraft` (`@Generable`) vorliegt. Beispiele: „Soll ich die Zimmernummer speichern oder jedes Mal fragen?“, „Es gibt zwei Checkboxen, auch Newsletter? Standard: nein.“
+- Nach jeder Runde zeigt die UI die aktuelle Zusammenfassung (Darstellung wie 01 §4.2). „Übernehmen“ speichert den Intent.
+- **Portal-Vorschau im Chat (SOLL):** Ist das Gerät gerade im Portal-WLAN, holt die App die Portal-Seite über die **gleiche HTTP-Engine** (kein WKWebView, kein JS). Sie normalisiert die Seite (01 §11) und gibt dem Chat die Elementliste als Kontext. So kann der Nutzer auf konkrete Elemente verweisen („der zweite Haken“). Die Elementliste ist als native Liste sichtbar.
+- **Reparatur-Chat:** Im Repair Center (01 §15, §29) startet der Chat mit dem redigierten Fehler-Trace als Kontext und erzeugt einen `RecipePatch`.
+- **Modellwahl:** `AssistantModel`-Protokoll mit den Implementierungen `OnDeviceAssistant` (Foundation Models, Standard) und `PCCAssistant` (optional, nur mit Entitlement und Internet, nie im Live-Login, 01 §15). Für die UI gilt: Kein Modell verfügbar → Chat ist deaktiviert, der Erweitert-Editor (01 §29) bleibt nutzbar.
+- **Datenschutz:** Werte sensibler Konzepte (01 §20.3) gehen nie in den Prompt. Der Chat fragt sie über ein **separates sicheres Eingabefeld** ab und speichert sie direkt im Keychain. Das Modell sieht nur Platzhalter (`<secret:…>`, `<personal:…>`).
+
+### 3.3 Debug-Paket & Stabilisierungs-Schleife (erweitert 01 §22.3)
+Ziel: Fehlschlag → Paket → Reparatur (in der App per Chat **oder** extern durch einen Menschen/KI-Coding-Agenten) → Re-Import → erneuter Test, bis das Recipe stabil ist.
+- Wird nach jedem Lauf mit Outcome ≠ `success` automatisch erzeugt (zusätzlich manuell). Teilen per `ShareLink`.
+- Datei `CaptiveAI-Debug-<profil>-<yyyyMMdd-HHmm>.zip`:
+  ```
+  README.md            Anleitung für Mensch + KI-Agent (Vorlage unten)
+  summary.json         outcome (01 §23), fehlgeschlagene Stage/Aktion, Zeitstempel, recipeRevision
+  intent.json          PortalIntent (redigiert)
+  recipe.yaml          verwendetes Recipe
+  trace.jsonl          redigierter Lern-/Replay-Trace (01 §12.3), eine Zeile pro Schritt
+  pages/NN.yaml        normalisierte Seitenzustände (01 §11)
+  pages/NN.html        Roh-HTML, redigiert (Formularwerte, Hidden-Values, Cookies entfernt), max. 1 MB
+  network.json         Redirect-Kette, Statuscodes, Hosts, Header ohne Cookie/Authorization
+  environment.json     App-/OS-Version, Gerät, Modellverfügbarkeit, Provider- vs. Manuell-Modus
+  chat.json            Chatverlauf, falls vorhanden (nur Platzhalter)
+  schema/prl-v1.json   JSON-Schema der PRL, damit ein externer Agent valide Patches erzeugen kann
+  ```
+- `README.md`-Vorlage (aus `Resources/DebugBundleREADME.md`, mit Feldern gefüllt):
+  > Dieses Paket beschreibt einen fehlgeschlagenen Captive-Portal-Login. Lies `summary.json`, dann `trace.jsonl` und die Seiten in `pages/`. Erzeuge eine korrigierte `recipe.yaml` nach `schema/prl-v1.json`. Ändere nur die Stages/Targets, die den Fehler verursachen. Verwende keine Literal-Werte für Konzepte, die als `<secret:…>`/`<personal:…>` markiert sind. Gib die Datei als `recipe.yaml` zurück. Sie wird in CaptiveAI über „Recipe importieren“ geladen.
+- **Re-Import:** „Recipe importieren“ im Profil (Datei-Picker, Share-Extension-frei über `onOpenURL`, Drag & Drop auf dem iPad). Danach Parse → Schema → Security-Validator (01 §24, §29) → Diff-Ansicht alt/neu → Bestätigen → neue Revision (01 §30).
+- **Stabilitätsmetrik pro Profil:** Läufe gesamt, Erfolgsquote, letzte 10 Outcomes. Status „stabil“ ab 5 Erfolgen in Folge ohne Repair. Sichtbar in der Aktivitätsansicht (01 §23).
+- **Redaction-Test (MUSS):** Ein automatisierter Test erzeugt ein Debug-Paket mit den Testwerten aus 02 §18 und prüft byteweise, dass keiner davon in irgendeiner Datei des ZIPs vorkommt.
+
+### 3.4 Teilen mit Zugangsdaten (überschreibt 01 §20.1 „Export“ und §21.2)
+Der Auftraggeber erlaubt ausdrücklich, Zugangsdaten mitzuteilen.
+- Standardexport bleibt **ohne** Secrets und personenbezogene Werte (wie 01 §21.2).
+- Im Export-Dialog gibt es den Schalter **„Zugangsdaten mitteilen“** (Standard: aus). Einschalten löst einen Bestätigungsdialog aus, der die betroffenen Werte nach Konzept auflistet, ohne Klartext („Passwort, Nachname werden mitgeteilt“).
+- Mit Opt-in kommt `credentials.json` in den `.captiveprofile`-Container (01 §21.1), standardmäßig **verschlüsselt**:
+  - Passphrase-Schutz ist vorausgewählt: AES-256-GCM (CryptoKit), Schlüssel per PBKDF2-HMAC-SHA256 (CommonCrypto), ≥ 600 000 Iterationen, zufälliger 16-Byte-Salt. Salt, Iterationen und Nonce stehen im `manifest.json`.
+  - Der Nutzer **darf** die Verschlüsselung abwählen (zweite Bestätigung „Unverschlüsselt teilen“).
+- `manifest.json` enthält `containsCredentials: true|false` und `credentialsEncrypted: true|false`.
+- Import: Vorschau zeigt „Enthält Zugangsdaten“ → Passphrase abfragen → Werte landen im Keychain. Der Grundsatz „Keychain-Werte werden niemals überschrieben“ (01 §31) bleibt bestehen: Bei Konflikt fragt die App pro Wert „Behalten / Ersetzen“.
+- Logs, Debug-Pakete und Notifications enthalten weiterhin **nie** Secrets (01 §20.1 bleibt für diese Kanäle unverändert).
+
+### 3.5 Betrieb ohne Hotspot-Helper-Entitlement: „Manueller Modus“ (ergänzt 02 §25)
+Lehnt Apple das Entitlement ab oder ist es noch nicht erteilt, bleibt die App trotzdem auf echten Geräten nutzbar:
+- **Auslöser:** App öffnen, App Intent „Im WLAN anmelden“ (Kurzbefehle-Automation „Wenn mit WLAN X verbunden“), Control-Center-Steuerelement.
+- **Ablauf:** Captive-Erkennung per `http://captive.apple.com/hotspot-detect.html` (enthält die Antwort „Success“, ist das Gerät online). Danach läuft dieselbe `CaptiveCore`-Engine (Replay, Lernen, Repair) in der Haupt-App über `URLSession` mit `allowsCellularAccess = false`.
+- Der Unterschied zum Provider-Modus liegt nur im **Transport-Adapter** (`PortalTransport`-Protokoll: `HotspotCommandTransport` vs. `URLSessionWiFiTransport`). Die Engine kennt den Modus nicht.
+- **Neues Spike-Gate S13:** Klären, ob im Captive-Zustand Requests aus der App mit `allowsCellularAccess = false` zuverlässig über das WLAN-Interface laufen, ob der System-CNA-Dialog stört und ob ein Login aus der App den CNA-Zustand auflöst. Ergebnis in den Spike-Bericht.
+- **Ergebnis E** (Erweiterung 02 §25): Entitlement abgelehnt → Produkt = Manueller Modus + alle übrigen Features. Kein Abbruchkriterium.
+
+### 3.6 Plattform & Name
+- Mindestversion **iOS/iPadOS 27** (wie 01 §3.1).
+- Produkt-/Target-Name **CaptiveAI** (wie 01 §6). Das Repo heißt weiterhin `AnyWiFiiOS`. Bundle-ID-Präfix liefert der Auftraggeber (§8). Bis dahin gilt der Platzhalter `com.example.captiveai`.
+
+---
+
+## 4. Build- & Repo-Vorgaben (ergänzt 01 §6)
+
+### 4.1 Struktur
 ```
-Nutzernachricht
-  → PageSnapshotter erzeugt Snapshot (≤ ~1 500 Tokens)
-  → LanguageModelSession(instructions: Systemprompt, tools: [...])
-  → Modell ruft Tools auf → RecipeEngine führt im WebView aus → Tool-Ergebnis (neuer Kurz-Snapshot / Fehler)
-  → Modell antwortet dem Nutzer
-  → alle ausgeführten Aktionen werden als Recipe-Entwurf mitgeschrieben
+AnyWiFiiOS/
+├─ SPEC.md, CLAUDE.md
+├─ docs/spec/                 Basis-Spezifikation (nicht ändern, nur per PR mit Begründung)
+├─ docs/spikes.md             Spike-Ergebnisbericht (Vorlage 02 §28, + S13)
+├─ docs/decisions/            ADRs (eine Datei pro Architekturentscheidung)
+├─ project.yml                XcodeGen: Targets CaptiveAIApp, HotspotEvaluationProvider,
+│                             HotspotAuthenticationProvider, CaptiveUITests
+├─ Packages/CaptiveCore/      Swift Package
+│  ├─ Sources/CaptiveCore/        plattformneutral: PRL-Modelle, YAML-Codec, Validator,
+│  │                              Normalizer, Matcher, Recipe-Interpreter, Trace-Compiler,
+│  │                              Redaction, Debug-Bundle-Builder, Export-Format
+│  ├─ Sources/CaptiveCoreApple/   Apple-only: Keychain, App Group Store, FoundationModels-
+│  │                              Adapter, PCC-Adapter, Transport-Adapter, CryptoKit-Export
+│  └─ Tests/CaptiveCoreTests/     inkl. Fixtures 02 §21 unter Tests/Fixtures/
+├─ App/                       SwiftUI-App (Features: Profiles, Chat, Activity, ImportExport,
+│                             RepairCenter, Settings, ManualMode)
+├─ Extensions/                Evaluation- & Authentication-Provider
+└─ tools/test-portal/         lokaler Testportal-Server (Routen 02 §5.3 + Fixtures), Python 3, ohne Abhängigkeiten
 ```
 
-### 5.2 Tools (Foundation Models `Tool`-Protokoll, Argumente als `@Generable`)
-| Tool | Argumente | Wirkung |
+### 4.2 Regeln
+- **`CaptiveCore` muss auf Linux mit `swift test` bauen und testen** (`#if canImport(...)` nur in `CaptiveCoreApple`). So kann ein Cloud-Agent ohne Mac den Großteil der Logik entwickeln und testen. Erlaubte Abhängigkeiten: `SwiftSoup` (HTML), `Yams` (YAML). Beide laufen auf Linux.
+- App, Extensions und UI-Tests brauchen macOS + Xcode (CI: GitHub Actions `macos-latest`). Ein Agent ohne Mac implementiert diese Teile, kennzeichnet sie im PR aber als „nicht lokal gebaut“.
+- Swift 6, Strict Concurrency. SwiftUI mit `NavigationSplitView` (iPad) bzw. Stack (iPhone).
+- Lokalisierung: Deutsch (primär), Englisch, String Catalog.
+- Keine Analytics, keine eigenen Server.
+
+### 4.3 CI
+- Job `core-linux`: `swift test` in `Packages/CaptiveCore` (ubuntu-latest, offizielles Swift-Image).
+- Job `app-macos`: `xcodegen generate` → `xcodebuild build test` (Simulator), startet vorher `tools/test-portal`.
+
+---
+
+## 5. Umsetzungsreihenfolge (ersetzt 01 §37 im Detail)
+
+| Phase | Inhalt | Abnahme |
 |---|---|---|
-| `get_page` | – | Liefert aktuellen Snapshot |
-| `tap` | `elementId` | Klick auf Element |
-| `fill` | `elementId`, `value` **oder** `variable` | Feld füllen; bei sensiblen Daten nur Variablenname |
-| `set_checkbox` | `elementId`, `checked` | Checkbox/Radio setzen |
-| `select_option` | `elementId`, `optionText` | Dropdown |
-| `wait_for` | `text` oder `elementId`, `timeoutSec` | Warten auf Element/Text/Navigation |
-| `ask_user_secret` | `variable`, `label`, `isSecret` | Öffnet sichere Eingabe beim Nutzer |
-| `check_online` | – | Connectivity-Probe |
-| `finish_recipe` | `summary` | Recipe-Entwurf abschließen → Bestätigungs-UI |
+| **0** Entitlements (Auftraggeber) | Bundle-ID, Hotspot Helper beantragen (Text: 01 §35.2), optional PCC | Antrag gestellt, Datum in `docs/spikes.md` |
+| **1** Core-Fundament | Package-Gerüst, PRL-Modelle + YAML, Schema-Export `prl-v1.json`, Parser/Validator, Unit-Tests 02 §22 | `swift test` grün auf Linux, CI-Job `core-linux` |
+| **2** Normalizer & Engine | Normalizer, Matcher (01 §10, 02 §13), Interpreter gegen Fixtures, Trace-Compiler, Security-Validator (01 §24–25), Consent-Regeln (01 §19) | Fixtures 01–15 mit erwarteten Outcomes, Redaction-Test (§3.3) |
+| **3** App-Grundgerüst | XcodeGen, Profile-UI, Keychain, App Group, WLAN-Konfiguration (§3.1), Erweitert-Editor | UI-Test „Profil anlegen“ |
+| **4** Manueller Modus | Transport-Adapter, Captive-Probe, App Intent, Control | Replay gegen `tools/test-portal` im Simulator. Gate S13 auf Gerät |
+| **5** AI | Foundation-Models-Adapter, Profil-Chat (§3.2), Lernlauf in App, Adaptive Repair | Fake-Model-Tests in CI. Auf Gerät P1–P8 per Chat lernbar |
+| **6** Debug & Stabilisierung | Debug-Paket (§3.3), Re-Import, Diff, Revisionen, Stabilitätsmetrik | P10 per externem Patch reparierbar (Roundtrip-Test) |
+| **7** Teilen | `.captiveprofile`, Opt-in Zugangsdaten + Verschlüsselung (§3.4), Import-Konflikte (01 §31) | Roundtrip-Tests: ohne / mit verschlüsselt / mit unverschlüsselt / falsche Passphrase |
+| **8** Spike | Gates S0–S12 (02) + S13, sobald das Entitlement da ist | `docs/spikes.md` vollständig, ADR zur Architekturentscheidung (02 §25) |
+| **9** Provider-Integration | Evaluation/Authentication Provider, `uiRequired`/`presentUI`, Pending Session | DoD-Punkte 01 §38 Nr. 3, 4, 10 auf Gerät |
+| **10** PCC-Repair (optional) | `PCCAssistant` im Repair Center | Nur mit Entitlement. Patch durchläuft denselben Validator |
+| **11** Politur | Accessibility, iPad-Layout, Privacy Manifest (01 §34), App-Store-Texte | Accessibility-Audit ohne kritische Befunde |
 
-### 5.3 Seiten-Snapshot (MUSS)
-Per injiziertem JavaScript nur **interaktive und beschriftende** Elemente extrahieren: `input`, `button`, `a`, `select`, `textarea`, `[role=button]`, `label`, Überschriften, sichtbarer Fließtext gekürzt auf 300 Zeichen. Pro Element:
-```
-[e7] button "Kostenlos verbinden"
-[e8] checkbox "Ich akzeptiere die AGB" (unchecked)
-[e9] input:text name=lastname placeholder="Nachname"
-```
-- `elementId` ist session-lokal. Für das gespeicherte Recipe erzeugt die Engine einen **robusten Locator** (Abschnitt 6.2).
-- iframes (same-origin) einbeziehen. Cross-origin iframes im Snapshot markieren und im Debug-Paket vermerken.
+Phasen 1–7 hängen **nicht** vom Hotspot-Entitlement ab. Phase 8 startet, sobald es vorliegt, notfalls parallel.
 
-### 5.4 Datenschutz-Regeln für das Modell (MUSS)
-- Passwörter, Voucher und personenbezogene Werte gehen **nie** in den Prompt oder ins Transcript. Das Modell kennt nur `{{password}}`.
-- Werte in Passwortfeldern sind im Snapshot maskiert (`value=***`).
-- Alles bleibt on-device. Kein eigener Server, keine Analytics.
-
-### 5.5 Systemprompt (Ausgangsversion, als Datei `Resources/Prompts/assistant.de.txt`)
-```
-Du hilfst, sich in einem WLAN-Anmeldeportal anzumelden. Du siehst eine vereinfachte Liste der
-Seitenelemente mit IDs wie [e7]. Führe Aktionen ausschließlich über die Tools aus.
-Regeln:
-- Erfinde keine Element-IDs. Rufe get_page auf, wenn du unsicher bist.
-- Sensible Werte (Passwort, Zimmernummer, Nachname, Voucher) nie selbst ausdenken:
-  nutze ask_user_secret und danach fill mit variable.
-- Nach dem letzten Schritt check_online aufrufen. Bei Erfolg finish_recipe.
-- Antworte kurz auf Deutsch. Frage nach, wenn die Anweisung mehrdeutig ist.
-```
+**Definition of Done V1** = 01 §38, ergänzt um:
+21. WLAN-Profil lässt sich auf dem Gerät einrichten (§3.1).
+22. Profil-Intent ist im mehrstufigen Chat erstellbar, inkl. Rückfragen (§3.2).
+23. Debug-Paket → externer Patch → Re-Import → Erfolg (§3.3).
+24. Export mit Zugangsdaten nur per Opt-in, standardmäßig verschlüsselt (§3.4).
+25. Manueller Modus funktioniert ohne Hotspot-Entitlement (§3.5).
 
 ---
 
-## 6. Recipe-Format & Engine
+## 6. Agenten-Rollen (agency-agents)
 
-### 6.1 Schema (JSON, versioniert; Schema-Datei `Schemas/recipe.v1.schema.json` MUSS mitgeliefert werden)
-```json
-{
-  "schemaVersion": 1,
-  "id": "UUID",
-  "name": "ICE WLAN",
-  "match": { "ssidPatterns": ["WIFIonICE"], "portalHosts": ["login.wifionice.de"] },
-  "variables": [
-    { "key": "lastName", "label": "Nachname", "secret": false, "required": true },
-    { "key": "password", "label": "Passwort", "secret": true, "required": true }
-  ],
-  "dom": {
-    "steps": [
-      { "action": "waitFor", "locator": { "text": "Kostenlos" }, "timeoutSec": 15 },
-      { "action": "setCheckbox", "locator": { "css": "#terms", "label": "AGB" }, "checked": true },
-      { "action": "fill", "locator": { "css": "input[name=lastname]" }, "variable": "lastName" },
-      { "action": "tap", "locator": { "role": "button", "text": "Verbinden" } }
-    ]
-  },
-  "http": {
-    "derivedFromDom": true,
-    "requests": [
-      { "method": "POST", "url": "https://login.example/connect",
-        "form": { "terms": "1", "lastname": "{{lastName}}" },
-        "extract": [{ "from": "html", "css": "input[name=csrf]", "attr": "value", "as": "csrf" }] }
-    ]
-  },
-  "success": { "probe": "apple", "alsoAcceptText": ["Sie sind online"] },
-  "meta": { "createdAt": "ISO8601", "createdBy": "chat|recording|manual|import", "appVersion": "1.0" }
-}
-```
-Erlaubte `action`-Werte (abschließend): `waitFor`, `tap`, `fill`, `setCheckbox`, `selectOption`, `navigate` (nur Portal-Hosts), `sleep` (≤ 10 s), `assertText`. **Kein beliebiges JavaScript im Recipe.**
+Quelle: https://github.com/msitarzewski/agency-agents (die angegebene URL `MichaelSitarzewski/agency-agents` war nicht öffentlich erreichbar).
 
-### 6.2 Locator-Strategie (MUSS)
-Jeder Locator speichert mehrere Merkmale. Die Engine probiert sie in dieser Reihenfolge: `id` → `name` → `css` → `label`/`ariaLabel` → `role+text` → `text`. Treffen mehrere Elemente zu, ist das ein Fehler (Ambiguität), kein Raten.
-
-### 6.3 Engine-Verhalten
-- Deterministisch, ohne LLM zur Laufzeit. Das LLM wird nur beim Erstellen und Reparieren gebraucht.
-- Jeder Schritt hat Timeout (Default 10 s) und **einen** Retry.
-- Nach jedem Schritt: Log-Eintrag + Screenshot (`WKWebView.takeSnapshot`) im Ringpuffer.
-- Erfolgs-Check nach dem letzten Schritt (bis 20 s Polling, alle 2 s).
-- WebView mit nicht-persistentem `WKWebsiteDataStore`, damit Sessions sauber starten.
-- Stufe B: `HTTPRecipeRunner` mit `URLSession` bzw. `bind(to:)`, Cookie-Handling, Extraktion versteckter Felder (CSRF).
-
----
-
-## 7. Debug-Paket (MUSS)
-
-Datei: `AnyWiFi-Debug-<profil>-<datum>.zip`
-```
-README.md            ← Anleitung für Mensch & KI-Agent: Was ist passiert, wie repariert man das Recipe
-summary.json         ← Ergebnis, fehlgeschlagener Schritt, Fehlertyp, Zeitstempel
-recipe.json          ← verwendetes Recipe (Secrets entfernt)
-steps.log            ← Schritt-Log mit Timings
-snapshots/NN.txt     ← Seiten-Snapshot vor jedem Schritt (Format aus 5.3)
-dom/NN.html          ← bereinigtes HTML (Formularwerte entfernt)
-screens/NN.png       ← Screenshots
-network.json         ← Redirect-Kette, Statuscodes, Header (Cookies/Authorization geschwärzt)
-environment.json     ← iOS-Version, Gerät, App-Version, Stufe A/B, SSID (optional)
-chat.json            ← Chat-Verlauf (falls vorhanden; Secrets sind ohnehin nur Platzhalter)
-```
-- Fehlertypen (Enum): `portalNotDetected`, `elementNotFound`, `elementAmbiguous`, `timeout`, `navigationBlocked`, `stillCaptiveAfterSubmit`, `httpError`, `crossOriginFrame`, `unknown`.
-- **Redaction-Pflicht:** Ein Unit-Test stellt sicher, dass kein Keychain-Wert in irgendeiner Datei des Pakets vorkommt.
-- `README.md` im Paket enthält eine fertige Anweisung, z. B.: „Lies summary.json und snapshots/. Erzeuge ein korrigiertes recipe.json nach Schema v1. Ändere nur die Locator/Schritte, die den Fehler verursachen.“
-- Import eines korrigierten `recipe.json` (oder `.anywifi`) überschreibt nach Bestätigung das Recipe des Profils (alte Version wird als Historie behalten, **SOLL** max. 5 Versionen).
-
----
-
-## 8. Architektur & Projektstruktur
-
-```
-AnyWiFi/
-├─ project.yml                     (XcodeGen)
-├─ App/                            AnyWiFiApp, Navigation, Settings
-├─ Features/
-│  ├─ Profiles/                    Liste, Detail, Editor (inkl. manueller Recipe-Editor)
-│  ├─ Connect/                     Portal-Erkennung, Login-Ausführung, Ergebnis-UI
-│  ├─ Assistant/                   Chat-UI, AssistantModel-Protokoll, FoundationModelsAssistant, Tools
-│  ├─ Recorder/                    Aufzeichnungsmodus
-│  ├─ Sharing/                     Export/Import, Verschlüsselung, UTType
-│  └─ Debug/                       DebugPackageBuilder, Redactor
-├─ Core/
-│  ├─ Model/                       SwiftData-Modelle, Recipe (Codable), Schema-Validierung
-│  ├─ Engine/                      DOMRecipeRunner (WKWebView), HTTPRecipeRunner, Locator
-│  ├─ Network/                     CaptiveProbe, HotspotConfigurator, CurrentNetwork
-│  ├─ Secrets/                     KeychainStore
-│  └─ Snapshot/                    PageSnapshotter + snapshot.js
-├─ Intents/                        App Intents „Anmelden“, „Profil wählen“, Control Widget
-├─ HotspotHelper/                  Stufe B (Feature-Flag)
-├─ Resources/                      Prompts, Localizable.xcstrings, JS-Dateien
-├─ Schemas/recipe.v1.schema.json
-├─ Tests/  UnitTests/, UITests/
-└─ tools/test-portals/             lokale Fake-Portale (siehe 9)
-```
-Architekturregeln: Features hängen nur von `Core` ab. `Core` kennt keine SwiftUI-Views. Alle WebView-/Netzwerkzugriffe laufen über Protokolle, damit sie in Tests ersetzbar sind.
-
----
-
-## 9. Teststrategie (MUSS)
-
-- **Test-Portale** in `tools/test-portals/` (kleiner Python- oder Node-Server, per Skript startbar, in CI genutzt). Mindestens diese Szenarien:
-  1. Nur Button „Verbinden“
-  2. AGB-Checkbox + Button
-  3. Formular Nachname + Zimmernummer
-  4. Benutzername + Passwort + CSRF-Token
-  5. Voucher-Code
-  6. Zweistufig (Seite 1 → Seite 2)
-  7. Formular in iframe
-  8. JS-gerenderte Seite (Button erscheint nach 2 s)
-  9. Fehlerfall: Button-Text ändert sich (für Reparatur-Flow)
-  Jedes Portal stellt einen Endpunkt bereit, der den „online“-Zustand simuliert (Ersatz für den Apple-Probe in Tests, Probe-URL konfigurierbar).
-- **Unit-Tests:** Recipe-Codable/Schema, Locator-Auflösung, Redaction, Export/Import inkl. Verschlüsselung, Matching.
-- **Integrationstests:** DOMRecipeRunner gegen alle Test-Portale (Simulator).
-- **Assistant-Tests:** Tools mit Fake-`AssistantModel` (skriptierte Tool-Aufrufe) testen. Echte Foundation-Models-Läufe nur als manuelle Gerätetests mit Protokoll.
-- **Geräte-Testprotokoll** `docs/device-test-checklist.md`: echtes Hotel-/Bahn-/Café-WLAN, Ergebnis + Debug-Paket ablegen.
-
----
-
-## 10. Umsetzungsphasen & Abnahmekriterien
-
-| Phase | Inhalt | Abnahme (Definition of Done) |
+| Rolle | Persona-Datei | Phasen |
 |---|---|---|
-| **0 Spikes** | (a) Foundation Models: Tool Calling + `@Generable` auf Gerät; PCC-Zugang prüfen. (b) WebView im Captive-Zustand: Läuft Traffic über WLAN? (c) `NEHotspotConfiguration` apply/remove. (d) Entitlement-Antrag HotspotHelper vorbereiten (Text für Auftraggeber). | Kurzbericht `docs/spikes.md` mit Ergebnis je Punkt; Architektur ggf. angepasst |
-| **1 Fundament** | XcodeGen-Projekt, CI, SwiftData-Modelle, Keychain, Recipe-Schema + Validierung | CI grün, Unit-Tests für Modell/Schema |
-| **2 Engine** | CaptiveProbe, DOMRecipeRunner, Locator, Test-Portale 1–9 | Portale 1–8 per handgeschriebenem Recipe erfolgreich, 9 scheitert sauber mit `elementNotFound` |
-| **3 Profile-UI** | Liste, Detail, manueller Editor, WLAN installieren, Login ausführen | Profil anlegen → Login gegen Test-Portal per UI-Test |
-| **4 Debug-Paket** | Builder, Redaction, Share, Recipe-Import | Redaction-Test grün, Paket für Portal 9 vollständig |
-| **5 Assistent** | Chat-UI, Tools, Snapshotter, Secret-Eingabe, Recipe-Entwurf | Auf Gerät: Portale 1–6 per Chat einrichtbar; Fake-Model-Tests in CI |
-| **6 Recorder** | Aufzeichnungsmodus | Portale 1–6 per Aufzeichnung einrichtbar |
-| **7 Teilen** | `.anywifi`, Opt-in Zugangsdaten, Verschlüsselung, Import-Validierung | Roundtrip-Tests mit/ohne Zugangsdaten und Passwort |
-| **8 Automatisierung** | App Intents, Control Widget, Kurzbefehl-Vorlage „Bei Verbindung mit WLAN X“ | Login per Kurzbefehl auf Gerät |
-| **9 Reparatur** | „Im Chat reparieren“ mit Fehlerkontext, Recipe-Historie, Stabilitätsmetrik | Portal 9 per Chat reparierbar |
-| **10 Stufe B** | HotspotHelper (nur mit Entitlement), HTTP-Recipes | Hinter Flag; Unit-Tests HTTPRecipeRunner gegen Test-Portale 1–5 |
-| **11 Politur** | Lokalisierung, Barrierefreiheit (VoiceOver, Dynamic Type), iPad-Layout, App-Store-Texte, Datenschutzangaben | Accessibility-Audit ohne kritische Befunde |
+| Orchestrierung | `specialized/agents-orchestrator.md`, `project-management/project-manager-senior.md` | alle |
+| iOS / Swift | `engineering/engineering-mobile-app-builder.md`, `engineering/engineering-senior-developer.md` | 1–4, 6–9, 11 |
+| AI | `engineering/engineering-ai-engineer.md`, `engineering/engineering-prompt-engineer.md` | 5, 10 |
+| UX | `design/design-ux-architect.md` | 3, 5, 11 |
+| Sicherheit / Datenschutz | `security/security-secrets-credential-engineer.md`, `security/security-appsec-engineer.md`, `engineering/engineering-privacy-engineer.md` | 2, 6, 7 |
+| QA | `testing/testing-evidence-collector.md`, `testing/testing-reality-checker.md`, `testing/testing-accessibility-auditor.md` | Abnahme jeder Phase (Dev↔QA-Loop) |
+| Release / Doku | `engineering/engineering-mobile-release-engineer.md`, `engineering/engineering-technical-writer.md` | 8, 11 |
 
 ---
 
-## 11. Nicht-funktionale Anforderungen
-- **Sicherheit:** Secrets nur im Keychain (`kSecAttrAccessibleAfterFirstUnlock`, damit Kurzbefehle/Stufe B im Hintergrund funktionieren). Kein Logging von Secrets. Importierte Recipes laufen ohne JS und nur auf Portal-Hosts.
-- **Datenschutz:** Keine Server, kein Tracking. App-Store-Privacy-Label: „Keine Daten erfasst“. Standortberechtigung nur, wenn für SSID nötig, mit klarer Begründung.
-- **Performance:** Login mit gespeichertem Recipe ≤ 10 s typisch (ohne Portal-Latenz).
-- **Barrierefreiheit:** VoiceOver-Labels, Dynamic Type, ausreichende Kontraste. Gestaltung nach Apple HIG.
-- **Robustheit:** Kein Absturz bei fehlender Apple Intelligence, fehlenden Berechtigungen oder fehlendem WLAN. Jeder Zustand hat eine verständliche Meldung.
+## 7. Arbeitsregeln für den Agenten
+1. Eine Phase pro Branch/PR. Der PR-Text belegt jedes Abnahmekriterium (Testausgabe, Screenshot oder Log).
+2. Weicht etwas von `docs/spec/` oder diesem Dokument ab, schreibe ein ADR in `docs/decisions/`. Nicht stillschweigend abweichen.
+3. Keine Secrets in Code, Tests (nur die Dummy-Werte aus 02 §18), Logs, Prompts oder Fixtures.
+4. Keine Unterstellungen über Apple-APIs: Bei Unsicherheit die Apple-Doku prüfen und im PR verlinken.
+5. Nicht testbare Gerätepunkte als offene Checkliste in `docs/device-test-checklist.md` führen.
 
 ---
 
-## 12. Agenten-Rollen (aus *agency-agents*)
-
-Quelle: https://github.com/msitarzewski/agency-agents (die angegebene URL `MichaelSitarzewski/agency-agents` war beim Erstellen nicht öffentlich erreichbar; Inhalt ist der Upstream). Pro Phase wird die passende Persona geladen:
-
-| Rolle | Datei | Einsatz |
-|---|---|---|
-| Orchestrierung | `specialized/agents-orchestrator.md`, `project-management/project-manager-senior.md` | Phasensteuerung, Aufgaben schneiden |
-| iOS-Entwicklung | `engineering/engineering-mobile-app-builder.md`, `engineering/engineering-senior-developer.md` | Phasen 1–4, 6–8, 10 |
-| KI/Assistent | `engineering/engineering-ai-engineer.md`, `engineering/engineering-prompt-engineer.md` | Phase 5, 9 |
-| UX | `design/design-ux-architect.md` | Chat-/Split-View-Flow, iPad-Layout |
-| Sicherheit/Datenschutz | `security/security-secrets-credential-engineer.md`, `engineering/engineering-privacy-engineer.md`, `security/security-appsec-engineer.md` | Keychain, Export-Verschlüsselung, Import-Validierung, Redaction |
-| QA | `testing/testing-evidence-collector.md`, `testing/testing-reality-checker.md`, `testing/testing-accessibility-auditor.md` | Abnahme jeder Phase (Dev↔QA-Loop: Phase gilt erst als fertig, wenn QA die DoD belegt) |
-| Release | `engineering/engineering-mobile-release-engineer.md`, `engineering/engineering-technical-writer.md` | Phase 11, TestFlight, Doku |
-
----
-
-## 13. Offene Punkte für den Auftraggeber
-1. **HotspotHelper-Entitlement** bei Apple beantragen? Ohne das gibt es keinen vollautomatischen Login im Hintergrund, nur per App/Kurzbefehl (Stufe A).
-2. **Apple Developer Team / Bundle-ID** (z. B. `com.<firma>.anywifi`) für Entitlements und TestFlight.
-3. **Mindest-iOS 26** in Ordnung? (Ohne Foundation Models wäre kein lokaler Chat möglich.)
-4. WPA-Enterprise (802.1X) im ersten Release nötig?
-5. Soll es eine **öffentliche Profil-Bibliothek** geben (z. B. Profile für Deutsche Bahn, Hotelketten)? Das ist aktuell **nicht** im Umfang, weil es einen Server erfordern würde.
-
-Bis zur Klärung gilt: Stufe A, iOS 26, nur WPA-Personal, keine Bibliothek.
+## 8. Offene Punkte für den Auftraggeber
+1. **Bundle-ID / Team-ID**. Ohne sie gibt es keinen Entitlement-Antrag.
+2. **Hotspot-Helper-Antrag** stellen (Account Holder, 01 §35).
+3. **PCC:** Ist das Team im Small Business Program? Wenn ja, Entitlement beantragen. Sonst entfällt Phase 10.
+4. Soll der unverschlüsselte Export (§3.4) überhaupt angeboten werden oder nur verschlüsselt?
+5. Endgültiger Produktname: CaptiveAI oder AnyWiFi?
