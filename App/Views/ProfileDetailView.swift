@@ -1,5 +1,6 @@
 import CaptiveCore
 import CaptiveCoreApple
+import SafariServices
 import SwiftData
 import SwiftUI
 
@@ -11,6 +12,7 @@ struct ProfileDetailView: View {
     @State private var showExport = false
     @State private var showRecipeImporter = false
     @State private var message: String?
+    @State private var safariURL: URL?
     @Query private var runs: [RunRecord]
 
     init(profile: ProfileRecord) {
@@ -60,6 +62,7 @@ struct ProfileDetailView: View {
         .toolbar { Toggle("Aktiv", isOn: $profile.enabled) }
         .sheet(isPresented: $showRecipeEditor) { RecipeEditorView(profile: profile) }
         .sheet(isPresented: $showExport) { ExportProfileView(profile: profile) }
+        .sheet(item: $safariURL) { url in SafariView(url: url).ignoresSafeArea() }
         .sheet(item: needsValueBinding) { request in
             ValueRequestView(concept: request.concept, profileName: profile.name) { value, remember in
                 login.provide(value, for: request.concept, remember: remember, profile: profile)
@@ -108,6 +111,9 @@ struct ProfileDetailView: View {
                 Label(outcome.title, systemImage: outcome.symbol).foregroundStyle(outcome.tint)
                     .accessibilityIdentifier("detail.outcome")
                 Text(reason).font(.subheadline)
+                if outcome == .manualInteractionRequired, let url = login.lastPortalURL {
+                    Button("Portal im Browser öffnen") { safariURL = url }
+                }
                 Button("Erneut versuchen") { Task { await login.login(profile, context: context) } }
             }
         }
@@ -210,4 +216,16 @@ struct ValueRequestView: View {
             }
         }
     }
+}
+
+/// Manuelle Anmeldung für Portale, die JavaScript brauchen (01 §17.3). Im Provider-Modus entspricht das
+/// `NEHotspotManager.safariDomains` + `SFSafariViewController` bei `presentUI`.
+struct SafariView: UIViewControllerRepresentable {
+    let url: URL
+
+    func makeUIViewController(context: Context) -> SFSafariViewController {
+        SFSafariViewController(url: url)
+    }
+
+    func updateUIViewController(_ controller: SFSafariViewController, context: Context) {}
 }

@@ -16,6 +16,8 @@ final class LoginService {
     }
 
     private(set) var state: State = .idle
+    /// Portal-URL des letzten Laufs, z. B. um ein JavaScript-Portal im Browser zu öffnen.
+    private(set) var lastPortalURL: URL?
     /// Werte, die der Nutzer in diesem Lauf eingegeben hat. Nur im Speicher.
     private var asked: [Concept: String] = [:]
 
@@ -58,6 +60,7 @@ final class LoginService {
             return
         }
 
+        lastPortalURL = result.lastPage?.url
         profile.record(result.outcome)
         var bundleFile: String?
         if result.outcome != .success, let recipe = recipeToRun ?? profile.recipe {

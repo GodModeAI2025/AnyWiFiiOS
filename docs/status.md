@@ -23,7 +23,7 @@ Stand: 04.10.2026, Branch `phase-2/engine` (baut auf `prep/phase-1-core` auf). C
 
 | # | Kriterium | Stand |
 |---|---|---|
-| 1 | Profil per Text oder Sprache | Text ✅ (Chat + Parser). Sprache: offen (SpeechAnalyzer) |
+| 1 | Profil per Text oder Sprache | Text ✅ (Chat + Parser). Sprache ✅ Code (SpeechAnalyzer, kompiliert), Gerät offen |
 | 2 | SSID-Zuordnung | ✅ |
 | 3 | Evaluation Provider beansprucht nur konfigurierte Netze | Code ✅, Gerät offen |
 | 4 | Provider führt Recipe aus | Code ✅, Gerät offen |
@@ -50,7 +50,9 @@ Stand: 04.10.2026, Branch `phase-2/engine` (baut auf `prep/phase-1-core` auf). C
 1. **`NEHotspotManager.safariDomains`** (iOS 26): Bis zu 10 Domains, für die die App während der Hotspot-Authentifizierung `SFSafariViewController` nutzen darf. Für JavaScript-Portale (z. B. `login.wifionice.de`) ist das im Provider-Modus der vorgesehene Weg zur manuellen Anmeldung im App-Kontext. Vorschlag: In `presentUI` bei `manualInteractionRequired` das Portal in `SFSafariViewController` öffnen.
 2. **`NEHotspotManager.evaluatedSSIDs`**: Bis zu 2 SSIDs, für die das System den Evaluation Provider gar nicht erst fragt. Für die zwei meistgenutzten Profile verwenden.
 3. **Extension-Point-IDs** der neuen Provider stehen nicht in der abrufbaren Doku → Spike S0, Xcode-Vorlage „Network Extension“.
-4. **CI-Toolchain**: macOS-Runner haben Xcode 26.6 mit iOS-26.5-SDK. Die App wird dort mit `IPHONEOS_DEPLOYMENT_TARGET=26.0` kompiliert, Release-Builds für iOS 27 brauchen ein lokales Xcode 27.
+4. **App Transport Security:** Captive Portals und der Apple-Probe laufen über HTTP. Ohne `NSAllowsArbitraryLoads` blockiert ATS die Anmeldung im Manuellen Modus komplett. Die Ausnahme ist gesetzt und muss im App-Review begründet werden („Captive-Portal-Anmeldeseiten sind technisch HTTP-only“). Der Provider-Modus nutzt dieselbe HTTP-Engine und ist ebenso betroffen.
+5. **JavaScript-Portale im Manuellen Modus:** Die App bietet „Portal im Browser öffnen“ (`SFSafariViewController`) an. Das entspricht dem Weg über `safariDomains` im Provider-Modus.
+6. **CI-Toolchain**: macOS-Runner haben Xcode 26.6 mit iOS-26.5-SDK. Die App wird dort mit `IPHONEOS_DEPLOYMENT_TARGET=26.0` kompiliert, Release-Builds für iOS 27 brauchen ein lokales Xcode 27.
 
 ## Was ein Mac mit Gerät als Nächstes tun muss
 1. Bundle-ID/Team-ID in `project.yml` und `AuthenticationProvider.swift` (TEAMID) eintragen.
