@@ -110,3 +110,27 @@ final class ChatUITests: XCTestCase {
         XCTAssertTrue(app.textViews["recipe-text"].waitForExistence(timeout: 5))
     }
 }
+
+/// Phase 6: Ein Fehlschlag erzeugt automatisch ein Debug-Paket, das in der Aktivität teilbar ist.
+final class DebugBundleUITests: XCTestCase {
+    override func setUp() { continueAfterFailure = false }
+
+    @MainActor func testFailureProducesShareableDebugBundle() {
+        let sem = DispatchSemaphore(value: 0)
+        URLSession.shared.dataTask(with: URL(string: "http://127.0.0.1:8099/_control/reset?scenario=js-required")!) { _, _, _ in sem.signal() }.resume()
+        _ = sem.wait(timeout: .now() + 5)
+
+        let app = XCUIApplication()
+        app.launchArguments = ["-uitest", "-seedHotel", "-probeURL", "http://127.0.0.1:8099/hotspot-detect.html"]
+        app.launch()
+        app.staticTexts["Testhotel"].firstMatch.tap()
+        app.buttons["login-now"].tap()
+        let status = app.staticTexts["login-status"]
+        XCTAssertTrue(status.waitForExistence(timeout: 20))
+        XCTAssertTrue(status.label.contains("manuelle"), status.label)
+
+        app.tabBars.buttons["Aktivität"].tap()
+        let share = app.buttons["Debug-Paket teilen"]
+        XCTAssertTrue(share.waitForExistence(timeout: 10), "Debug-Paket nach Fehlschlag")
+    }
+}

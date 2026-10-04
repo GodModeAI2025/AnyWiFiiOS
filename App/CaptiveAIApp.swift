@@ -9,11 +9,14 @@ struct CaptiveAIApp: App {
         WindowGroup {
             RootView()
                 .environment(model)
+                .onOpenURL { url in model.openRecipeFile(url) }
         }
     }
 }
 
 struct RootView: View {
+    @Environment(AppModel.self) private var model
+
     var body: some View {
         TabView {
             ProfileListView()
@@ -24,6 +27,9 @@ struct RootView: View {
                 .tabItem { Label("Import / Export", systemImage: "square.and.arrow.up.on.square") }
             SettingsView()
                 .tabItem { Label("Einstellungen", systemImage: "gearshape") }
+        }
+        .sheet(item: Binding(get: { model.pendingImport }, set: { model.pendingImport = $0 })) { pending in
+            RecipeImportSheet(pending: pending)
         }
     }
 }

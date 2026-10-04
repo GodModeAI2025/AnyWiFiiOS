@@ -104,6 +104,21 @@ public struct WiFiConfiguration: Codable, Equatable, Sendable {
     }
 }
 
+/// Frühere Recipe-Revision (01 §30). Aufbewahrt werden die letzten fünf.
+public struct RecipeRevision: Codable, Equatable, Sendable {
+    public var revision: Int
+    public var yaml: String
+    public var savedAt: Date
+    public var note: String
+
+    public init(revision: Int, yaml: String, savedAt: Date = Date(), note: String) {
+        self.revision = revision
+        self.yaml = yaml
+        self.savedAt = savedAt
+        self.note = note
+    }
+}
+
 public struct PortalProfile: Codable, Identifiable, Equatable, Sendable {
     public let id: UUID
     public var name: String
@@ -116,11 +131,15 @@ public struct PortalProfile: Codable, Identifiable, Equatable, Sendable {
     public var createdAt: Date
     public var updatedAt: Date
     public var recipeRevision: Int
+    public var revisionHistory: [RecipeRevision]
+
+    public static let maxHistory = 5
 
     public init(id: UUID = UUID(), name: String, enabled: Bool = true,
                 network: NetworkMatcher, intent: PortalIntent, recipe: Recipe? = nil,
                 credentialBindings: [CredentialBinding] = [], wifi: WiFiConfiguration? = nil,
-                createdAt: Date = Date(), updatedAt: Date = Date(), recipeRevision: Int = 0) {
+                createdAt: Date = Date(), updatedAt: Date = Date(), recipeRevision: Int = 0,
+                revisionHistory: [RecipeRevision] = []) {
         self.id = id
         self.name = name
         self.enabled = enabled
@@ -132,5 +151,48 @@ public struct PortalProfile: Codable, Identifiable, Equatable, Sendable {
         self.createdAt = createdAt
         self.updatedAt = updatedAt
         self.recipeRevision = recipeRevision
+        self.revisionHistory = revisionHistory
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id, name, enabled, network, intent, recipe, credentialBindings, wifi, createdAt, updatedAt
+        case recipeRevision, revisionHistory
+    }
+
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(UUID.self, forKey: .id)
+        name = try c.decode(String.self, forKey: .name)
+        enabled = try c.decode(Bool.self, forKey: .enabled)
+        network = try c.decode(NetworkMatcher.self, forKey: .network)
+        intent = try c.decode(PortalIntent.self, forKey: .intent)
+        recipe = try c.decodeIfPresent(Recipe.self, forKey: .recipe)
+        credentialBindings = try c.decode([CredentialBinding].self, forKey: .credentialBindings)
+        wifi = try c.decodeIfPresent(WiFiConfiguration.self, forKey: .wifi)
+        createdAt = try c.decode(Date.self, forKey: .createdAt)
+        updatedAt = try c.decode(Date.self, forKey: .updatedAt)
+        recipeRevision = try c.decode(Int.self, forKey: .recipeRevision)
+        revisionHistory = try c.decodeIfPresent([RecipeRevision].self, forKey: .revisionHistory) ?? []
+    }
+
+    /// Übernimmt ein neues Recipe als nächste Revision. Die bisherige Fassung wandert in die Historie.
+    public mutating func commit(_ new: Recipe, note: String, at date: Date = Date()) {
+        if let old = recipe, let yaml = try? PRLCodec.serialize(old) {
+            revisionHistory.append(RecipeRevision(revision: recipeRevision, yaml: yaml, savedAt: date, note: note))
+            if revisionHistory.count > Self.maxHistory { revisionHistory.removeFirst(revisionHistory.count - Self.maxHistory) }
+        }
+        recipe = new
+        recipeRevision += 1
+        updatedAt = date
+    }
+
+    public enum RollbackError: Error, Equatable, Sendable { case revisionNotFound, corrupt }
+
+    /// Stellt eine frühere Revision wieder her. Es entsteht eine neue Revision mit altem Inhalt,
+    /// damit die Historie linear bleibt ("Seit Version 7 schlägt es fehl → Version 6").
+    public mutating func rollback(to revision: Int, at date: Date = Date()) throws {
+        guard let old = revisionHistory.first(where: { $0.revision == revision }) else { throw RollbackError.revisionNotFound }
+        guard let restored = try? PRLCodec.parse(yaml: old.yaml) else { throw RollbackError.corrupt }
+        commit(restored, note: "Rollback auf Revision \(revision)", at: date)
     }
 }
