@@ -71,6 +71,9 @@ struct ProfileSetupView: View {
                             .lineLimit(1...4)
                             .accessibilityIdentifier("setup.input")
                         if busy { ProgressView() }
+                        if #available(iOS 26.0, *) {
+                            VoiceButton { text in input = input.isEmpty ? text : input + " " + text }
+                        }
                         Button { Task { await send() } } label: { Image(systemName: "arrow.up.circle.fill").font(.title2) }
                             .disabled(input.trimmingCharacters(in: .whitespaces).isEmpty || busy)
                             .accessibilityLabel("Senden")
