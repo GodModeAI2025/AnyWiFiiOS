@@ -6,6 +6,7 @@ let package = Package(
     platforms: [.iOS(.v18), .macOS(.v14)],
     products: [
         .library(name: "CaptiveCore", targets: ["CaptiveCore"]),
+        .library(name: "CaptiveCoreApple", targets: ["CaptiveCoreApple"]),
     ],
     dependencies: [
         .package(url: "https://github.com/scinfu/SwiftSoup.git", from: "2.7.0"),
@@ -15,6 +16,10 @@ let package = Package(
         .target(
             name: "CaptiveCore",
             dependencies: ["SwiftSoup", "Yams"]
+        ),
+        .target(
+            name: "CaptiveCoreApple",
+            dependencies: ["CaptiveCore"]
         ),
         .testTarget(
             name: "CaptiveCoreTests",

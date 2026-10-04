@@ -12,3 +12,17 @@ jobs:
       - name: swift test (CaptiveCore)
         working-directory: Packages/CaptiveCore
         run: swift test
+
+  app-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tools
+        run: brew install xcodegen
+      - name: Projekt erzeugen
+        run: xcodegen generate
+      - name: Build und UI-Tests (Simulator)
+        run: |
+          DEST=$(xcrun simctl list devices available | grep -m1 -oE 'iPhone [^(]+\(([0-9A-F-]+)\)' | grep -oE '[0-9A-F-]{36}')
+          xcodebuild -project CaptiveAI.xcodeproj -scheme CaptiveAI \
+            -destination "platform=iOS Simulator,id=$DEST" CODE_SIGNING_ALLOWED=NO test
