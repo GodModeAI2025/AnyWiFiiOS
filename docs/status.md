@@ -1,6 +1,6 @@
 # Projektstand
 
-Stand: 04.10.2026, Branch `phase-2/engine` (baut auf `prep/phase-1-core` auf). CI: Linux (`swift test`), macOS (`swift test`), iOS-Simulator-Build der App.
+Stand: 04.10.2026, Branch `phase-2/engine` (baut auf `prep/phase-1-core` auf). CI: Linux (`swift test`), macOS (`swift test`), iOS-Simulator-Build der App, End-to-End-UI-Test gegen `tools/test-portal`. Alles grün.
 
 ## Phasen (SPEC.md §5)
 
@@ -9,8 +9,8 @@ Stand: 04.10.2026, Branch `phase-2/engine` (baut auf `prep/phase-1-core` auf). C
 | 0 Entitlements | offen, Auftraggeber | `docs/entitlement-antraege.md` |
 | 1 Core-Fundament | ✅ | PRL-Modelle, YAML-Codec, Schema, Validator, Tests |
 | 2 Normalizer & Engine | ✅ | 19 Fixtures mit Soll-Outcome, Redaction-Test, Trace-Compiler |
-| 3 App-Grundgerüst | 🟡 Code fertig, CI-Build | SwiftUI/SwiftData, Profil-Chat, Login, Export/Import, Aktivität, Einstellungen. UI-Tests fehlen |
-| 4 Manueller Modus | 🟡 | `URLSessionWiFiTransport`, `LoginService`, App Intent. Gate S13 nur auf Gerät prüfbar |
+| 3 App-Grundgerüst | ✅ | SwiftUI/SwiftData, Profil-Chat (Text + Sprache), Login, Export/Import, Aktivität, Einstellungen. UI-Test „Profil im Chat anlegen → anmelden“ grün im Simulator |
+| 4 Manueller Modus | 🟡 | `URLSessionWiFiTransport`, `LoginService`, App Intent. Im Simulator end-to-end gegen das Testportal belegt (Probe → Portal → POST → online). Gate S13 (echtes Captive-WLAN, WLAN statt Mobilfunk) nur auf Gerät |
 | 5 AI | 🟡 | Planner-Vertrag, PlanValidator, Lernlauf, Repair, HeuristicPlanner (Tests grün). FoundationModels-Planner und IntentChat kompilieren (macOS-SDK 26), Verhalten nur auf Gerät prüfbar |
 | 6 Debug & Stabilisierung | ✅ Core, 🟡 App | Debug-Paket inkl. Agent-README und Schema, Re-Import, Revisionen/Rollback, Stabilitätsmetrik |
 | 7 Teilen | ✅ Core, 🟡 App | `.captiveprofile`, Opt-in, AES-GCM/PBKDF2, Import-Konflikte (Keychain nie überschreiben) |
@@ -51,8 +51,9 @@ Stand: 04.10.2026, Branch `phase-2/engine` (baut auf `prep/phase-1-core` auf). C
 2. **`NEHotspotManager.evaluatedSSIDs`**: Bis zu 2 SSIDs, für die das System den Evaluation Provider gar nicht erst fragt. Für die zwei meistgenutzten Profile verwenden.
 3. **Extension-Point-IDs** der neuen Provider stehen nicht in der abrufbaren Doku → Spike S0, Xcode-Vorlage „Network Extension“.
 4. **App Transport Security:** Captive Portals und der Apple-Probe laufen über HTTP. Ohne `NSAllowsArbitraryLoads` blockiert ATS die Anmeldung im Manuellen Modus komplett. Die Ausnahme ist gesetzt und muss im App-Review begründet werden („Captive-Portal-Anmeldeseiten sind technisch HTTP-only“). Der Provider-Modus nutzt dieselbe HTTP-Engine und ist ebenso betroffen.
-5. **JavaScript-Portale im Manuellen Modus:** Die App bietet „Portal im Browser öffnen“ (`SFSafariViewController`) an. Das entspricht dem Weg über `safariDomains` im Provider-Modus.
-6. **CI-Toolchain**: macOS-Runner haben Xcode 26.6 mit iOS-26.5-SDK. Die App wird dort mit `IPHONEOS_DEPLOYMENT_TARGET=26.0` kompiliert, Release-Builds für iOS 27 brauchen ein lokales Xcode 27.
+5. **Modell „verfügbar“, aber Generierung scheitert:** Im Simulator meldete Foundation Models Verfügbarkeit, die Generierung schlug fehl. Der Lernlauf endete deshalb mit „KI nicht verfügbar“. Gelöst mit `FallbackPlanner` (Foundation Models → regelbasiert). Dasselbe kann auf Geräten passieren (Assets fehlen, Thermik).
+6. **JavaScript-Portale im Manuellen Modus:** Die App bietet „Portal im Browser öffnen“ (`SFSafariViewController`) an. Das entspricht dem Weg über `safariDomains` im Provider-Modus.
+7. **CI-Toolchain**: macOS-Runner haben Xcode 26.6 mit iOS-26.5-SDK. Die App wird dort mit `IPHONEOS_DEPLOYMENT_TARGET=26.0` kompiliert, Release-Builds für iOS 27 brauchen ein lokales Xcode 27.
 
 ## Was ein Mac mit Gerät als Nächstes tun muss
 1. Bundle-ID/Team-ID in `project.yml` und `AuthenticationProvider.swift` (TEAMID) eintragen.
