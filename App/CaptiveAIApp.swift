@@ -9,7 +9,7 @@ struct CaptiveAIApp: App {
         WindowGroup {
             RootView()
                 .environment(model)
-                .onOpenURL { url in model.openRecipeFile(url) }
+                .onOpenURL { url in model.open(url) }
         }
     }
 }
@@ -30,6 +30,9 @@ struct RootView: View {
         }
         .sheet(item: Binding(get: { model.pendingImport }, set: { model.pendingImport = $0 })) { pending in
             RecipeImportSheet(pending: pending)
+        }
+        .sheet(item: Binding(get: { model.pendingProfileImport }, set: { model.pendingProfileImport = $0 })) { pending in
+            ProfileImportSheet(pending: pending)
         }
     }
 }

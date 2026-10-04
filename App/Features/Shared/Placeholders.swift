@@ -90,16 +90,6 @@ struct RunRow: View {
     }
 }
 
-struct ImportExportView: View {
-    var body: some View {
-        NavigationStack {
-            ContentUnavailableView("Import und Export", systemImage: "square.and.arrow.up.on.square",
-                                   description: Text("Profile teilen und Recipes importieren folgt in einer späteren Version."))
-                .navigationTitle("Import / Export")
-        }
-    }
-}
-
 struct SettingsView: View {
     var body: some View {
         NavigationStack {
