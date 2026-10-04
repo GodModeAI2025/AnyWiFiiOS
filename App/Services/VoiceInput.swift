@@ -2,6 +2,7 @@ import AVFoundation
 import Foundation
 import Observation
 import Speech
+import SwiftUI
 
 /// Spracheingabe für den Profil-Chat (01 §4.3): SpeechAnalyzer + SpeechTranscriber, auf dem Gerät.
 /// Nur in der Haupt-App, nie in der Network Extension.
@@ -139,8 +140,6 @@ private final class ConverterBox: @unchecked Sendable {
 private final class OneShot: @unchecked Sendable {
     var used = false
 }
-
-import SwiftUI
 
 /// Mikrofon-Button für den Chat. Fügt die erkannte Anweisung ins Eingabefeld ein.
 @available(iOS 26.0, *)
