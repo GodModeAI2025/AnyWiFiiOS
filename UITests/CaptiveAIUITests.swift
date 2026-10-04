@@ -17,10 +17,13 @@ final class CaptiveAIUITests: XCTestCase {
         app.launchArguments += [
             "-CaptiveAIProbeURL", "http://127.0.0.1:8080/hotspot-detect.html",
             "-CaptiveAIInMemoryStore", "YES",
+            "-AppleLanguages", "(de)", "-AppleLocale", "de_DE",
         ]
         app.launch()
 
-        app.buttons["Neues Profil"].firstMatch.tap()
+        let newProfile = element(app, "root.newProfile")
+        XCTAssertTrue(newProfile.waitForExistence(timeout: 20))
+        newProfile.tap()
 
         let name = element(app, "setup.name")
         XCTAssertTrue(name.waitForExistence(timeout: 10))

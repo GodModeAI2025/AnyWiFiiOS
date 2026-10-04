@@ -51,6 +51,7 @@ struct RootView: View {
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Button { showSetup = true } label: { Label("Neues Profil", systemImage: "plus") }
+                        .accessibilityIdentifier("root.newProfile")
                 }
                 ToolbarItem(placement: .secondaryAction) {
                     Button { showImporter = true } label: { Label("Importieren", systemImage: "square.and.arrow.down") }
