@@ -35,9 +35,12 @@ final class CaptiveAIUITests: XCTestCase {
         input.typeText("AGB akzeptieren und verbinden")
         element(app, "setup.send").tap()
 
-        XCTAssertTrue(app.staticTexts["✓ Nutzungsbedingungen akzeptieren"].waitForExistence(timeout: 30),
-                      "Zusammenfassung erscheint nicht")
-        element(app, "setup.save").tap()
+        // „Speichern“ wird erst aktiv, wenn der Chat die Anweisung verstanden hat (Entwurf nicht leer).
+        // Die Zusammenfassung selbst liegt in der lazy gerenderten Form ggf. außerhalb des sichtbaren Bereichs.
+        let save = element(app, "setup.save")
+        let enabled = expectation(for: NSPredicate(format: "isEnabled == true"), evaluatedWith: save)
+        wait(for: [enabled], timeout: 30)
+        save.tap()
 
         let login = element(app, "detail.login")
         if !login.waitForExistence(timeout: 10) {
