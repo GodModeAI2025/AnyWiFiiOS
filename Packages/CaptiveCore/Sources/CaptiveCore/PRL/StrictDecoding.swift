@@ -32,7 +32,18 @@ struct AnyKey: CodingKey, Hashable {
 }
 
 extension Decoder {
-    var pathString: String { codingPath.map(\.stringValue).joined(separator: ".") }
+    /// Lesbarer Pfad wie `stages[0].actions[1].fill.target`.
+    var pathString: String {
+        var path = ""
+        for key in codingPath {
+            if let index = key.intValue {
+                path += "[\(index)]"
+            } else {
+                path += path.isEmpty ? key.stringValue : ".\(key.stringValue)"
+            }
+        }
+        return path
+    }
 
     /// Wirft `PRLError.unknownFields`, wenn das aktuelle Objekt Schlüssel außerhalb von `allowed` enthält.
     /// Codable ignoriert unbekannte Schlüssel sonst stillschweigend. Für PRL ist das nicht erlaubt (02 §22).

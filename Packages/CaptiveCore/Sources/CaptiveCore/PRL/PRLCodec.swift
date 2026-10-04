@@ -14,7 +14,14 @@ public enum PRLCodec {
         guard yaml.utf8.count <= maxDocumentBytes else {
             throw PRLCodecError.documentTooLarge(bytes: yaml.utf8.count)
         }
-        return try YAMLDecoder().decode(Recipe.self, from: yaml)
+        do {
+            return try YAMLDecoder().decode(Recipe.self, from: yaml)
+        } catch let DecodingError.dataCorrupted(context) {
+            // Yams verpackt Fehler aus init(from:) in DecodingError. PRL-Fehler wieder auspacken,
+            // damit Aufrufer (Import-UI, Repair Center) sie gezielt anzeigen können.
+            if let prl = context.underlyingError as? PRLError { throw prl }
+            throw DecodingError.dataCorrupted(context)
+        }
     }
 
     public static func decode(data: Data) throws -> Recipe {
