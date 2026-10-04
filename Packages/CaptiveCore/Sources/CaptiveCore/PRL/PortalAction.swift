@@ -149,6 +149,13 @@ public struct OptionSpec: Codable, Equatable, Sendable {
         self.value = value
     }
 
+    /// Beschriftungen und Wert, z. B. für Consent- und Skriptprüfung.
+    public var allTexts: [String] {
+        var texts = labelAny ?? []
+        if let value { texts.append(value) }
+        return texts
+    }
+
     enum CodingKeys: String, CodingKey, CaseIterable { case labelAny, value }
 
     public init(from decoder: Decoder) throws {

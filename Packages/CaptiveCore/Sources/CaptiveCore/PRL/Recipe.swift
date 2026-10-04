@@ -206,14 +206,21 @@ public struct Target: Codable, Equatable, Sendable {
 
     /// Alle für Menschen sichtbaren bzw. technischen Bezeichner, z. B. für die Consent-Prüfung.
     public var allDescriptors: [String] {
-        (labelAny ?? []) + (nameAny ?? []) + (placeholderAny ?? []) + (nearbyText ?? [])
-            + [id, name].compactMap { $0 }
+        var result: [String] = []
+        for list in [labelAny, nameAny, placeholderAny, nearbyText] {
+            result.append(contentsOf: list ?? [])
+        }
+        if let id { result.append(id) }
+        if let name { result.append(name) }
+        return result
     }
 
     /// `true`, wenn das Target nur über den CSS-Selector identifiziert wird. Das ist unzulässig (01 §10).
     public var isSelectorOnly: Bool {
-        lastKnownSelector != nil && role == nil && concept == nil && allDescriptors.isEmpty
-            && type == nil && autocomplete == nil && ordinal == nil
+        guard lastKnownSelector != nil else { return false }
+        if role != nil || concept != nil { return false }
+        if type != nil || autocomplete != nil || ordinal != nil { return false }
+        return allDescriptors.isEmpty
     }
 
     /// `true`, wenn das Target überhaupt nichts zur Identifikation enthält.

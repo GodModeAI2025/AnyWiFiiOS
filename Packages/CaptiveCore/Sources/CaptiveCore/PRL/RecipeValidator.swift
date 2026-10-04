@@ -101,7 +101,7 @@ public struct RecipeValidator: Sendable {
 
         case .select(let s):
             checkCommercial(s.target, path: path, add: add)
-            let optionTexts = (s.option.labelAny ?? []) + [s.option.value].compactMap { $0 }
+            let optionTexts = s.option.allTexts
             if ConsentClassifier.isCommercial(optionTexts) {
                 add(.commercialAction, path, "Auswahl einer kostenpflichtigen Option ist in V1 nicht erlaubt (01 §19)")
             }
@@ -229,13 +229,17 @@ extension Recipe {
             let sp = "stages[\(si)]"
             out.append(("\(sp).id", stage.id))
             if let m = stage.match {
-                out += ((m.anyText ?? []) + (m.urlContains ?? [])).map { ("\(sp).match", $0) }
+                for text in (m.anyText ?? []) { out.append(("\(sp).match", text)) }
+                for text in (m.urlContains ?? []) { out.append(("\(sp).match", text)) }
             }
             for (ai, action) in stage.actions.enumerated() {
                 let ap = "\(sp).actions[\(ai)]"
                 if let t = action.target {
-                    out += (t.allDescriptors + [t.type, t.autocomplete, t.lastKnownSelector].compactMap { $0 })
-                        .map { ("\(ap).target", $0) }
+                    var texts: [String] = t.allDescriptors
+                    for extra in [t.type, t.autocomplete, t.lastKnownSelector] {
+                        if let extra { texts.append(extra) }
+                    }
+                    for text in texts { out.append(("\(ap).target", text)) }
                 }
                 switch action {
                 case .fill(let f):
@@ -246,11 +250,12 @@ extension Recipe {
                         break
                     }
                 case .select(let s):
-                    out += ((s.option.labelAny ?? []) + [s.option.value].compactMap { $0 }).map { ("\(ap).option", $0) }
+                    for text in s.option.allTexts { out.append(("\(ap).option", text)) }
                 case .requestValue(let r):
                     if let p = r.prompt { out.append(("\(ap).prompt", p)) }
                 case .waitFor(let w):
-                    out += ((w.urlContains ?? []) + (w.pageContainsAny ?? [])).map { ("\(ap).waitFor", $0) }
+                    for text in (w.urlContains ?? []) { out.append(("\(ap).waitFor", text)) }
+                    for text in (w.pageContainsAny ?? []) { out.append(("\(ap).waitFor", text)) }
                 case .verify(let v):
                     out += (v.pageContainsAny ?? []).map { ("\(ap).verify", $0) }
                 case .check, .uncheck, .tap, .submit, .stop:
