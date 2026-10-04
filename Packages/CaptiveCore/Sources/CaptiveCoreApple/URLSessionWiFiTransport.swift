@@ -1,3 +1,4 @@
+#if canImport(Darwin)
 import Foundation
 import CaptiveCore
 
@@ -54,3 +55,4 @@ public final class URLSessionWiFiTransport: PortalTransport, @unchecked Sendable
         }
     }
 }
+#endif
