@@ -51,6 +51,10 @@ Die App bricht ab und übergibt an den Nutzer. Zahlungen und optionale Marketing
 **Funktioniert die App ohne das Entitlement?**
 Ja, im manuellen Modus (App öffnen, App Intent, Kurzbefehl, Control Center). Das Entitlement macht den Ablauf automatisch, es ist keine Voraussetzung für die App.
 
+## Zusätzliche Capabilities für die Extensions
+
+Die beiden Provider-Extensions tragen laut Xcode-Template das Entitlement `com.apple.developer.networking.networkextension` mit dem Wert `hotspot-provider`. Beide Extensions und die App brauchen außerdem App Group (`group.com.example.captiveai`) und Keychain Sharing (`<TeamID>.com.example.captiveai.shared`). Die App braucht für das Einrichten von WLAN-Profilen `com.apple.developer.networking.HotspotConfiguration` (Self-Service). Benachrichtigungen verlangen keine Capability, nur die Nutzererlaubnis.
+
 ## Vor dem Absenden prüfen
 
 - Bundle-ID und Team-ID sind eingetragen (SPEC §8, Punkt 1).

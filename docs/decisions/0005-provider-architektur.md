@@ -1,0 +1,11 @@
+# ADR 0005: Provider-Architektur und Annahmen
+
+Status: angenommen (Phase 9), Annahmen auf Gerät zu prüfen
+
+- Die Provider sind dünne Adapter. Die Logik liegt in `EvaluationCore` und `AuthenticationCore` (CaptiveCore, Linux-testbar). Nur Systemtypen (`NEHotspotHelperCommand`, `NEHotspotHelperResponse`) bleiben in den Extensions.
+- Extension-Struktur laut Xcode-Templates: `EXAppExtensionAttributes` mit `com.apple.networkextension.hotspot-evaluation` bzw. `-authentication`, Entitlement `com.apple.developer.networking.networkextension = [hotspot-provider]`. Das Hotspot-Helper-Entitlement `com.apple.developer.networking.HotspotHelper` gehört laut Apple-Doku zum Antrag (`docs/entitlement-antrag.md`).
+- Ablauf bei fehlendem Wert (Apple-Doku zu `NEHotspotManager`): `UNUserNotificationCenter`-Alert, Antwort `uiRequired`, danach erhält der Provider `presentUI` und läuft im Hintergrund, bis die App den Wert geliefert hat. Umsetzung: `presentUI` pollt den `PendingStore` (Budget 10 Minuten) und führt die Anmeldung dann zu Ende.
+- Der Wert liegt nur im gemeinsamen Keychain (`pending.<runId>.<concept>`). Der Pending-Eintrag im App Group Container enthält nur die Referenz. Der Provider löscht den Schlüssel nach Gebrauch.
+- Zeitbudget: `authenticate` bricht nach 25 Sekunden mit `temporaryFailure` ab, bevor das System den Provider beendet. Die genauen Systemfenster sind auf Gerät zu messen (S3).
+- Offene Annahmen für Gerätetests: (1) `presentUI` wird nach `uiRequired` tatsächlich zugestellt, ohne dass die App geöffnet sein muss. (2) Foundation Models läuft im Provider (S1). (3) `bindToHotspotHelperCommand` bindet auch Cookies-Sessions korrekt (S2). (4) Das Control-Extension-Target erreicht den Keychain über die gemeinsame Access Group.
+- Simulator: Er lehnt Apps mit Hotspot-Provider-Extensions bei der Installation ab ("Failed to create app extension placeholder"). Deshalb gibt es zwei App-Targets aus derselben Vorlage (`targetTemplates` in `project.yml`): `CaptiveAIApp` (Gerät, bettet beide Provider ein, Scheme `CaptiveAI-Device`) und `CaptiveAIAppDev` (Simulator und CI, ohne Provider, Scheme `CaptiveAI`). Die Provider-Extensions werden im Device-Scheme kompiliert und eingebettet. Ihre Logik testet CI über `AuthenticationCore`.
