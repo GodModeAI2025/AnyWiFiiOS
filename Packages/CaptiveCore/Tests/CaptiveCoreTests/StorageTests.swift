@@ -117,9 +117,11 @@ import Foundation
         let dir = FileManager.default.temporaryDirectory.appendingPathComponent("runlog-\(UUID().uuidString)")
         let store = RunLogStore(directory: dir, maxEntries: 2)
         try store.append(r.log)
-        let text = String(decoding: try JSONEncoder().encode(r.log), as: UTF8.self)
+        // Strukturell prüfen statt auf Teilstrings: UUIDs und Zeiten können zufällig "417" enthalten.
+        let text = String(decoding: try JSONEncoder().encode(r.log.events), as: UTF8.self)
         #expect(!text.contains("Example"))
-        #expect(!text.contains("417"))
+        for e in r.log.events { #expect(e.value == nil || e.value!.hasPrefix("<")) }
+        #expect(!(r.log.reason ?? "").contains("417"))
         #expect(store.all().first?.outcome == .success)
         for _ in 0..<3 { try store.append(RunLog(profileId: r.log.profileId, profileName: "x", startedAt: Date(), durationMs: 1, outcome: .timeout, reason: nil, requiredConcept: nil, failedStage: nil, usedRecipe: false, recipeRevision: 0, events: [])) }
         #expect(store.all().count == 2)
