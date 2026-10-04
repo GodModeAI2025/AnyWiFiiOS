@@ -1,0 +1,166 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://captiveai.invalid/schemas/prl-v1.schema.json",
+  "title": "CaptiveAI Portal Recipe Language (PRL) v1",
+  "description": "Strukturprüfung für recipe.yaml (docs/spec/01 §8–10). Semantische und Sicherheitsregeln (01 §19, §24, §25) prüft zusätzlich der RecipeValidator in CaptiveCore. Keine Skriptsprache: kein JavaScript, kein freier Code.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["recipeVersion", "profileId", "name", "network", "stages", "success"],
+  "properties": {
+    "recipeVersion": { "const": 1 },
+    "profileId": { "type": "string", "pattern": "^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$" },
+    "name": { "type": "string", "minLength": 1, "maxLength": 100 },
+    "network": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ssid"],
+      "properties": { "ssid": { "type": "string", "minLength": 1, "maxLength": 32 } }
+    },
+    "stages": { "type": "array", "minItems": 1, "maxItems": 10, "items": { "$ref": "#/$defs/stage" } },
+    "success": { "$ref": "#/$defs/success" }
+  },
+  "$defs": {
+    "text": { "type": "string", "minLength": 1, "maxLength": 200 },
+    "textList": { "type": "array", "minItems": 1, "maxItems": 20, "items": { "$ref": "#/$defs/text" } },
+    "concept": {
+      "enum": ["username", "password", "lastName", "roomNumber", "email", "voucherCode", "accessCode", "phoneNumber", "otp"]
+    },
+    "role": { "enum": ["textField", "passwordField", "checkbox", "radio", "select", "button", "link"] },
+    "keychainKey": { "type": "string", "pattern": "^[A-Za-z0-9_-]+(\\.[A-Za-z0-9_-]+)+$", "maxLength": 100 },
+    "stage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "actions"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z][A-Za-z0-9_-]{0,39}$" },
+        "match": {
+          "type": "object",
+          "additionalProperties": false,
+          "minProperties": 1,
+          "properties": {
+            "anyText": { "$ref": "#/$defs/textList" },
+            "fields": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/concept" } },
+            "urlContains": { "$ref": "#/$defs/textList" }
+          }
+        },
+        "actions": { "type": "array", "minItems": 1, "maxItems": 20, "items": { "$ref": "#/$defs/action" } }
+      }
+    },
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "role": { "$ref": "#/$defs/role" },
+        "concept": { "$ref": "#/$defs/concept" },
+        "labelAny": { "$ref": "#/$defs/textList" },
+        "nameAny": { "$ref": "#/$defs/textList" },
+        "placeholderAny": { "$ref": "#/$defs/textList" },
+        "id": { "$ref": "#/$defs/text" },
+        "name": { "$ref": "#/$defs/text" },
+        "type": { "$ref": "#/$defs/text" },
+        "autocomplete": { "$ref": "#/$defs/text" },
+        "nearbyText": { "$ref": "#/$defs/textList" },
+        "ordinal": { "type": "integer", "minimum": 0, "maximum": 50 },
+        "lastKnownSelector": { "type": "string", "minLength": 1, "maxLength": 300 }
+      }
+    },
+    "value": {
+      "type": "object",
+      "minProperties": 1,
+      "maxProperties": 1,
+      "additionalProperties": false,
+      "properties": {
+        "literal": { "type": "string", "maxLength": 200 },
+        "profile": { "$ref": "#/$defs/text" },
+        "keychain": { "$ref": "#/$defs/keychainKey" },
+        "ask": { "$ref": "#/$defs/concept" },
+        "runtime": { "$ref": "#/$defs/text" }
+      }
+    },
+    "targetOnly": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["target"],
+      "properties": { "target": { "$ref": "#/$defs/target" } }
+    },
+    "action": {
+      "type": "object",
+      "minProperties": 1,
+      "maxProperties": 1,
+      "additionalProperties": false,
+      "properties": {
+        "fill": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["target", "value"],
+          "properties": { "target": { "$ref": "#/$defs/target" }, "value": { "$ref": "#/$defs/value" } }
+        },
+        "check": { "$ref": "#/$defs/targetOnly" },
+        "uncheck": { "$ref": "#/$defs/targetOnly" },
+        "select": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["target", "option"],
+          "properties": {
+            "target": { "$ref": "#/$defs/target" },
+            "option": {
+              "type": "object",
+              "additionalProperties": false,
+              "minProperties": 1,
+              "properties": { "labelAny": { "$ref": "#/$defs/textList" }, "value": { "$ref": "#/$defs/text" } }
+            }
+          }
+        },
+        "tap": { "$ref": "#/$defs/targetOnly" },
+        "submit": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": { "target": { "$ref": "#/$defs/target" } }
+        },
+        "requestValue": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["concept"],
+          "properties": { "concept": { "$ref": "#/$defs/concept" }, "prompt": { "$ref": "#/$defs/text" } }
+        },
+        "waitFor": {
+          "type": "object",
+          "additionalProperties": false,
+          "minProperties": 1,
+          "properties": {
+            "redirect": { "const": true },
+            "urlContains": { "$ref": "#/$defs/textList" },
+            "pageContainsAny": { "$ref": "#/$defs/textList" },
+            "element": { "$ref": "#/$defs/target" },
+            "timeoutSeconds": { "type": "integer", "minimum": 1, "maximum": 15 }
+          }
+        },
+        "verify": {
+          "type": "object",
+          "additionalProperties": false,
+          "minProperties": 1,
+          "properties": {
+            "internetAccess": { "type": "boolean" },
+            "pageContainsAny": { "$ref": "#/$defs/textList" }
+          }
+        },
+        "stop": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["outcome"],
+          "properties": { "outcome": { "enum": ["success", "temporaryFailure", "unsupported", "requiresManualInteraction"] } }
+        }
+      }
+    },
+    "success": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["internetAccess"],
+      "properties": {
+        "internetAccess": { "type": "boolean" },
+        "pageContainsAny": { "$ref": "#/$defs/textList" }
+      }
+    }
+  }
+}

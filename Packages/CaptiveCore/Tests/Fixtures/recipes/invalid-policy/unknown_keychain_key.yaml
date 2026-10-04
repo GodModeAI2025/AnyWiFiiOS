@@ -1,0 +1,31 @@
+recipeVersion: 1
+profileId: 00000000-0000-0000-0000-000000000005
+name: Hotel Muster
+network:
+  ssid: Hotel_Guest
+stages:
+  - id: guest
+    match:
+      fields: [roomNumber, lastName]
+    actions:
+      - fill:
+          target:
+            concept: roomNumber
+            labelAny: [Room number, Zimmernummer, Room]
+            nameAny: [room, room_no, roomNumber]
+          value:
+            ask: roomNumber
+      - fill:
+          target:
+            concept: lastName
+            labelAny: [Last name, Nachname]
+            nameAny: [lastname, surname]
+          value:
+            keychain: other.lastName
+      - tap:
+          target:
+            role: button
+            labelAny: [Connect, Verbinden]
+
+success:
+  internetAccess: true

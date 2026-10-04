@@ -1,0 +1,10 @@
+{
+  "comment": "Keychain-Schlüssel → Konzept, wie sie im Profil (CredentialBinding, 01 §7.4) hinterlegt wären. Für Validator-Tests.",
+  "bindings": {
+    "corp.username": "username",
+    "corp.password": "password",
+    "hotel.lastName": "lastName",
+    "hotspot.voucher": "voucherCode",
+    "freewifi.email": "email"
+  }
+}

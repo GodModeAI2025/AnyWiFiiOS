@@ -1,0 +1,155 @@
+{
+  "comment": "Erwartete Ergebnisse je Fixture. Quelle der Wahrheit für tools/test-portal und CaptiveCore-Tests. Werte sind Dummy-Testdaten (02 §18).",
+  "testValues": {
+    "username": "mark",
+    "password": "SuperSecret123",
+    "roomNumber": "417",
+    "lastName": "Example",
+    "email": "mark@example.invalid",
+    "voucherCode": "VOUCH-1234"
+  },
+  "fixtures": {
+    "01_clickthrough": {
+      "expectedOutcome": "success",
+      "required": {
+        "action": "continue"
+      }
+    },
+    "02_terms": {
+      "expectedOutcome": "success",
+      "required": {
+        "terms": "1"
+      }
+    },
+    "03_terms_privacy": {
+      "expectedOutcome": "success",
+      "required": {
+        "privacy": "yes",
+        "tos": "yes"
+      }
+    },
+    "04_userpass": {
+      "expectedOutcome": "success",
+      "required": {
+        "username": "$username",
+        "password": "$password",
+        "action": "login"
+      },
+      "concepts": {
+        "username": "username",
+        "password": "password"
+      }
+    },
+    "05_hotel": {
+      "expectedOutcome": "success",
+      "required": {
+        "room": "$roomNumber",
+        "lastname": "$lastName"
+      },
+      "concepts": {
+        "room": "roomNumber",
+        "lastname": "lastName"
+      }
+    },
+    "06_voucher": {
+      "expectedOutcome": "success",
+      "required": {
+        "code": "$voucherCode"
+      },
+      "concepts": {
+        "code": "voucherCode"
+      }
+    },
+    "07_email": {
+      "expectedOutcome": "success",
+      "required": {
+        "email": "$email",
+        "accept_terms": "on"
+      },
+      "concepts": {
+        "email": "email"
+      }
+    },
+    "08_multistage_terms": {
+      "expectedOutcome": "nextStage",
+      "required": {
+        "terms": "1"
+      },
+      "next": "09_multistage_guest"
+    },
+    "09_multistage_guest": {
+      "expectedOutcome": "success",
+      "required": {
+        "room_no": "$roomNumber",
+        "surname": "$lastName",
+        "stage_token": "$issued"
+      },
+      "concepts": {
+        "room_no": "roomNumber",
+        "surname": "lastName"
+      }
+    },
+    "10_changed_labels": {
+      "expectedOutcome": "success",
+      "required": {
+        "room": "$roomNumber",
+        "lastname": "$lastName"
+      },
+      "concepts": {
+        "room": "roomNumber",
+        "lastname": "lastName"
+      },
+      "note": "Wie 05_hotel, Button heißt 'Join Wi-Fi' statt 'Connect' → Replay-Mismatch + Adaptive Repair (P10, S9)"
+    },
+    "11_hidden_csrf": {
+      "expectedOutcome": "success",
+      "required": {
+        "username": "$username",
+        "password": "$password",
+        "csrf": "$issued",
+        "action": "login"
+      },
+      "concepts": {
+        "username": "username",
+        "password": "password"
+      }
+    },
+    "12_optional_marketing": {
+      "expectedOutcome": "success",
+      "required": {
+        "terms": "1"
+      },
+      "forbidden": [
+        "newsletter",
+        "partners"
+      ],
+      "note": "newsletter ist vorausgewählt und muss aktiv abgewählt werden (01 §19)"
+    },
+    "13_paid_upgrade": {
+      "expectedOutcome": "success",
+      "required": {
+        "terms": "1",
+        "tier": "free"
+      },
+      "forbidden": [
+        "premium",
+        "newsletter"
+      ],
+      "note": "Premium-Button/Checkbox darf nie betätigt werden (S10)"
+    },
+    "14_js_only": {
+      "expectedOutcome": "manualInteractionRequired",
+      "note": "Keine Controls im Server-HTML (S11)"
+    },
+    "15_malformed_html": {
+      "expectedOutcome": "success",
+      "required": {
+        "terms": "1",
+        "room": "$roomNumber"
+      },
+      "concepts": {
+        "room": "roomNumber"
+      }
+    }
+  }
+}

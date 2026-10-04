@@ -1,0 +1,27 @@
+recipeVersion: 1
+profileId: 00000000-0000-0000-0000-000000000007
+name: Free WiFi E-Mail
+network:
+  ssid: Free_WiFi
+stages:
+  - id: email
+    match:
+      fields: [email]
+    actions:
+      - fill:
+          target:
+            concept: email
+            labelAny: [Email, E-Mail]
+          value:
+            keychain: freewifi.email
+      - check:
+          target:
+            role: checkbox
+            labelAny: [Terms]
+      - tap:
+          target:
+            role: button
+            labelAny: [Continue]
+
+success:
+  internetAccess: true

@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  core-linux:
+    name: CaptiveCore (swift test, Linux)
+    runs-on: ubuntu-latest
+    container: swift:6.1-noble
+    steps:
+      - uses: actions/checkout@v4
+      - name: swift build
+        working-directory: Packages/CaptiveCore
+        run: swift build --build-tests
+      - name: swift test
+        working-directory: Packages/CaptiveCore
+        run: swift test --parallel
+
+  tooling:
+    name: Test-Portal & PRL-Schema (Python)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pyyaml jsonschema
+      - name: Fake-Portal-Selbsttests
+        run: python -m unittest discover -s tools/test-portal -v
+      - name: PRL-Fixtures gegen Schema
+        run: python tools/prl/validate_recipes.py
+
+  # app-macos (xcodegen + xcodebuild) folgt mit Phase 3, sobald project.yml existiert.

@@ -1,0 +1,19 @@
+recipeVersion: 1
+profileId: 00000000-0000-0000-0000-00000000000d
+name: Guest Paid Upgrade
+network:
+  ssid: Guest_WiFi
+stages:
+  - id: consent
+    actions:
+      - check:
+          target:
+            role: checkbox
+            labelAny: [Accept required Terms]
+      - tap:
+          target:
+            role: button
+            labelAny: [Upgrade to Premium – € 9.99]
+
+success:
+  internetAccess: true

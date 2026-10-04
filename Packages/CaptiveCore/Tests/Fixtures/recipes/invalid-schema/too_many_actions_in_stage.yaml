@@ -1,0 +1,57 @@
+recipeVersion: 1
+profileId: 00000000-0000-0000-0000-000000000001
+name: Guest Click-Through
+network:
+  ssid: Guest_WiFi
+stages:
+  - id: welcome
+    match:
+      anyText: [Welcome]
+    actions:
+      - verify:
+          internetAccess: false
+      - verify:
+          internetAccess: false
+      - verify:
+          internetAccess: false
+      - verify:
+          internetAccess: false
+      - verify:
+          internetAccess: false
+      - verify:
+          internetAccess: false
+      - verify:
+          internetAccess: false
+      - verify:
+          internetAccess: false
+      - verify:
+          internetAccess: false
+      - verify:
+          internetAccess: false
+      - verify:
+          internetAccess: false
+      - verify:
+          internetAccess: false
+      - verify:
+          internetAccess: false
+      - verify:
+          internetAccess: false
+      - verify:
+          internetAccess: false
+      - verify:
+          internetAccess: false
+      - verify:
+          internetAccess: false
+      - verify:
+          internetAccess: false
+      - verify:
+          internetAccess: false
+      - verify:
+          internetAccess: false
+      - tap:
+          target:
+            role: button
+            labelAny: [Continue, Weiter]
+
+success:
+  internetAccess: true

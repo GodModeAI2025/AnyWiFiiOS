@@ -1,0 +1,24 @@
+recipeVersion: 1
+profileId: 00000000-0000-0000-0000-000000000006
+name: Hotspot Voucher
+network:
+  ssid: Hotspot
+stages:
+  - id: voucher
+    match:
+      fields: [voucherCode]
+    actions:
+      - fill:
+          target:
+            concept: voucherCode
+            placeholderAny: [Voucher code, Gutscheincode]
+            nameAny: [code, voucher]
+          value:
+            keychain: hotspot.voucher
+      - tap:
+          target:
+            role: button
+            labelAny: [Connect, Verbinden]
+
+success:
+  internetAccess: true

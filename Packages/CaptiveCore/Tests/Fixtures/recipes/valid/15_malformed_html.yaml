@@ -1,0 +1,25 @@
+recipeVersion: 1
+profileId: 00000000-0000-0000-0000-00000000000f
+name: Guest Malformed
+network:
+  ssid: Guest_WiFi
+stages:
+  - id: guest
+    actions:
+      - check:
+          target:
+            role: checkbox
+            labelAny: [Terms]
+      - fill:
+          target:
+            concept: roomNumber
+            placeholderAny: [Zimmernummer]
+          value:
+            ask: roomNumber
+      - tap:
+          target:
+            role: button
+            labelAny: [Connect]
+
+success:
+  internetAccess: true

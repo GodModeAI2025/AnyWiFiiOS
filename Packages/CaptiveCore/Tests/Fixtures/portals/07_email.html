@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Free Wi-Fi</title>
+<style>body{font-family:sans-serif;max-width:28rem;margin:2rem auto}label{display:block;margin:.5rem 0}</style>
+</head>
+<body>
+<h1>Free Wi-Fi</h1>
+<form method="post" action="/auth">
+  <input type="hidden" name="fixture" value="07_email">
+  <label>Email <input type="email" name="email" autocomplete="email" required></label>
+  <label><input type="checkbox" name="accept_terms" value="on" required> I agree to the Terms</label>
+  <button type="submit">Continue</button>
+</form>
+</body>
+</html>

@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WLAN Gast</title>
+<style>body{font-family:sans-serif;max-width:28rem;margin:2rem auto}label{display:block;margin:.5rem 0}</style>
+</head>
+<body>
+<h1>Kostenloses WLAN</h1>
+<form method="post" action="/auth">
+  <input type="hidden" name="fixture" value="03_terms_privacy">
+  <label><input type="checkbox" id="privacy" name="privacy" value="yes" required> Ich akzeptiere die Datenschutzerklärung</label>
+  <label><input type="checkbox" id="tos" name="tos" value="yes" required> Ich akzeptiere die Nutzungsbedingungen</label>
+  <button type="submit" name="connect" value="1">Verbinden</button>
+</form>
+</body>
+</html>

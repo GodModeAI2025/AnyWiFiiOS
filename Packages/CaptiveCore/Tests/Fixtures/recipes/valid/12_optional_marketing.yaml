@@ -1,0 +1,27 @@
+recipeVersion: 1
+profileId: 00000000-0000-0000-0000-00000000000c
+name: Guest Marketing
+network:
+  ssid: Guest_WiFi
+stages:
+  - id: consent
+    actions:
+      - check:
+          target:
+            role: checkbox
+            labelAny: [Accept required Terms]
+      - uncheck:
+          target:
+            role: checkbox
+            labelAny: [Subscribe to newsletter]
+      - uncheck:
+          target:
+            role: checkbox
+            labelAny: [Share my data with partners]
+      - tap:
+          target:
+            role: button
+            labelAny: [Continue]
+
+success:
+  internetAccess: true

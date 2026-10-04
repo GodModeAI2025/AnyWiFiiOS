@@ -1,0 +1,29 @@
+recipeVersion: 1
+profileId: 00000000-0000-0000-0000-00000000000b
+name: Login CSRF
+network:
+  ssid: Corp_Guest
+stages:
+  - id: login
+    match:
+      fields: [username, password]
+    actions:
+      - fill:
+          target:
+            concept: username
+            nameAny: [username]
+          value:
+            keychain: corp.username
+      - fill:
+          target:
+            concept: password
+            nameAny: [password]
+          value:
+            keychain: corp.password
+      - submit:
+          target:
+            role: button
+            labelAny: [Login]
+
+success:
+  internetAccess: true

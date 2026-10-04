@@ -1,0 +1,46 @@
+recipeVersion: 1
+profileId: 00000000-0000-0000-0000-000000000008
+name: Hotel Muster mehrstufig
+network:
+  ssid: Hotel_Guest
+stages:
+  - id: terms
+    match:
+      anyText: [Terms]
+    actions:
+      - check:
+          target:
+            role: checkbox
+            labelAny: [Terms]
+      - tap:
+          target:
+            role: button
+            labelAny: [Continue]
+      - waitFor:
+          redirect: true
+          timeoutSeconds: 5
+  - id: guest
+    match:
+      fields: [roomNumber, lastName]
+    actions:
+      - fill:
+          target:
+            concept: roomNumber
+            labelAny: [Room number, Room]
+            nameAny: [room_no]
+          value:
+            ask: roomNumber
+      - fill:
+          target:
+            concept: lastName
+            placeholderAny: [Nachname]
+            nameAny: [surname]
+          value:
+            keychain: hotel.lastName
+      - tap:
+          target:
+            role: button
+            labelAny: [Connect]
+
+success:
+  internetAccess: true

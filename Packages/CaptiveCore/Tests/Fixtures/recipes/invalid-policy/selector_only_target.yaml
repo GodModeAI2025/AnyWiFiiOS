@@ -1,0 +1,20 @@
+recipeVersion: 1
+profileId: 00000000-0000-0000-0000-000000000002
+name: Guest Terms
+network:
+  ssid: Guest_WiFi
+stages:
+  - id: terms
+    match:
+      anyText: [Terms, Nutzungsbedingungen]
+    actions:
+      - check:
+          target:
+            lastKnownSelector: "#content > div:nth-child(3) > input"
+      - tap:
+          target:
+            role: button
+            labelAny: [Continue, Weiter]
+
+success:
+  internetAccess: true

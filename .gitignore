@@ -1,0 +1,17 @@
+# Xcode / SwiftPM
+.build/
+.swiftpm/
+DerivedData/
+*.xcodeproj/
+*.xcworkspace/xcuserdata/
+xcuserdata/
+Package.resolved.bak
+
+# Python
+__pycache__/
+*.pyc
+
+# Test-Portal-Logs
+tools/test-portal/*.jsonl
+
+.DS_Store

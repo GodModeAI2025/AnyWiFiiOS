@@ -1,0 +1,27 @@
+recipeVersion: 1
+profileId: 00000000-0000-0000-0000-000000000003
+name: WLAN Gast
+network:
+  ssid: WLAN_Gast
+stages:
+  - id: consent
+    match:
+      anyText: [Datenschutz, Nutzungsbedingungen]
+    actions:
+      - check:
+          target:
+            role: checkbox
+            labelAny: [Datenschutz, Privacy]
+            lastKnownSelector: "#privacy"
+      - check:
+          target:
+            role: checkbox
+            labelAny: [Nutzungsbedingungen, Terms]
+            lastKnownSelector: "#tos"
+      - tap:
+          target:
+            role: button
+            labelAny: [Verbinden, Connect]
+
+success:
+  internetAccess: true

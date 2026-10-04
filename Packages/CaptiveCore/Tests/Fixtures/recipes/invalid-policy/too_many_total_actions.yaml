@@ -1,0 +1,105 @@
+recipeVersion: 1
+profileId: 00000000-0000-0000-0000-000000000001
+name: Guest Click-Through
+network:
+  ssid: Guest_WiFi
+stages:
+  - id: s0
+    actions:
+      - verify:
+          pageContainsAny: [Step]
+      - verify:
+          pageContainsAny: [Step]
+      - verify:
+          pageContainsAny: [Step]
+      - verify:
+          pageContainsAny: [Step]
+      - verify:
+          pageContainsAny: [Step]
+      - verify:
+          pageContainsAny: [Step]
+      - verify:
+          pageContainsAny: [Step]
+      - verify:
+          pageContainsAny: [Step]
+      - verify:
+          pageContainsAny: [Step]
+      - verify:
+          pageContainsAny: [Step]
+      - verify:
+          pageContainsAny: [Step]
+      - verify:
+          pageContainsAny: [Step]
+      - verify:
+          pageContainsAny: [Step]
+      - verify:
+          pageContainsAny: [Step]
+      - verify:
+          pageContainsAny: [Step]
+  - id: s1
+    actions:
+      - verify:
+          pageContainsAny: [Step]
+      - verify:
+          pageContainsAny: [Step]
+      - verify:
+          pageContainsAny: [Step]
+      - verify:
+          pageContainsAny: [Step]
+      - verify:
+          pageContainsAny: [Step]
+      - verify:
+          pageContainsAny: [Step]
+      - verify:
+          pageContainsAny: [Step]
+      - verify:
+          pageContainsAny: [Step]
+      - verify:
+          pageContainsAny: [Step]
+      - verify:
+          pageContainsAny: [Step]
+      - verify:
+          pageContainsAny: [Step]
+      - verify:
+          pageContainsAny: [Step]
+      - verify:
+          pageContainsAny: [Step]
+      - verify:
+          pageContainsAny: [Step]
+      - verify:
+          pageContainsAny: [Step]
+  - id: s2
+    actions:
+      - verify:
+          pageContainsAny: [Step]
+      - verify:
+          pageContainsAny: [Step]
+      - verify:
+          pageContainsAny: [Step]
+      - verify:
+          pageContainsAny: [Step]
+      - verify:
+          pageContainsAny: [Step]
+      - verify:
+          pageContainsAny: [Step]
+      - verify:
+          pageContainsAny: [Step]
+      - verify:
+          pageContainsAny: [Step]
+      - verify:
+          pageContainsAny: [Step]
+      - verify:
+          pageContainsAny: [Step]
+      - verify:
+          pageContainsAny: [Step]
+      - verify:
+          pageContainsAny: [Step]
+      - verify:
+          pageContainsAny: [Step]
+      - verify:
+          pageContainsAny: [Step]
+      - verify:
+          pageContainsAny: [Step]
+
+success:
+  internetAccess: true
