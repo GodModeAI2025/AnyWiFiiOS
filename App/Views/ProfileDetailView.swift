@@ -109,8 +109,11 @@ struct ProfileDetailView: View {
                 HStack { ProgressView(); Text(text) }
             case .finished(let outcome, let reason):
                 Label(outcome.title, systemImage: outcome.symbol).foregroundStyle(outcome.tint)
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(outcome.title)
                     .accessibilityIdentifier("detail.outcome")
                 Text(reason).font(.subheadline)
+                    .accessibilityIdentifier("detail.reason")
                 if outcome == .manualInteractionRequired, let url = login.lastPortalURL {
                     Button("Portal im Browser öffnen") { safariURL = url }
                 }

@@ -184,3 +184,16 @@ struct GreedyPlanner: PortalPlanner {
     }
     func repairTarget(old: Target, opcode: PortalAction.Opcode, intent: PortalIntent, page: PortalPage) async throws -> RepairSuggestion? { nil }
 }
+
+final class FallbackPlannerTests: XCTestCase {
+    func testFallsBackWhenModelFails() async throws {
+        let manifest = try PortalManifest.load()
+        let portal = FakePortal(portal: "02_terms", manifest: manifest)
+        let intent = PortalIntent(instructions: [.acceptRequiredTerms, .submit], bindings: [:], originalInstruction: "AGB")
+        let learning = await LearningRunner(runner: RecipeRunner(transport: portal, values: StaticValueProvider()),
+                                            planner: FallbackPlanner(primary: FailingPlanner()))
+            .learn(intent: intent, profileId: UUID(), name: "x", ssid: "x")
+        XCTAssertEqual(learning.run.outcome, .success, "\(learning.run.reason)")
+        XCTAssertNotNil(learning.recipe)
+    }
+}

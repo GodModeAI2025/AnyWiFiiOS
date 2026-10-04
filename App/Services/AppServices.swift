@@ -86,7 +86,7 @@ enum PlannerFactory {
     /// Apple Intelligence, falls verfügbar. Sonst regelbasiert (SPEC §3.2).
     static func make() -> any PortalPlanner {
         if #available(iOS 26.0, *), FoundationModelsPlanner.isAvailable {
-            return FoundationModelsPlanner()
+            return FallbackPlanner(primary: FoundationModelsPlanner(), fallback: HeuristicPlanner())
         }
         return HeuristicPlanner()
     }

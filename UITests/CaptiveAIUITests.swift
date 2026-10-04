@@ -55,6 +55,8 @@ final class CaptiveAIUITests: XCTestCase {
 
         let outcome = element(app, "detail.outcome")
         XCTAssertTrue(outcome.waitForExistence(timeout: 60), "Kein Ergebnis angezeigt")
-        XCTAssertTrue(outcome.label.contains("Verbunden"), "Ergebnis: \(outcome.label)")
+        let reason = element(app, "detail.reason")
+        XCTAssertTrue(outcome.label.contains("Verbunden"),
+                      "Ergebnis: \(outcome.label), Grund: \(reason.exists ? reason.label : "?")")
     }
 }

@@ -89,3 +89,34 @@ public struct HeuristicPlanner: PortalPlanner {
         return page.links.first { preferred($0) && !ConsentClassifier.isCommercial($0.descriptors) }
     }
 }
+
+/// Nutzt den primären Planner (z. B. Foundation Models) und fällt bei Modellfehlern auf einen zweiten
+/// (z. B. `HeuristicPlanner`) zurück. So scheitert ein Lernlauf nicht daran, dass das Modell
+/// gemeldet „verfügbar“ ist, aber nicht generieren kann (Assets fehlen, Simulator, Thermik).
+public struct FallbackPlanner: PortalPlanner {
+    public var primary: any PortalPlanner
+    public var fallback: any PortalPlanner
+
+    public init(primary: any PortalPlanner, fallback: any PortalPlanner = HeuristicPlanner()) {
+        self.primary = primary
+        self.fallback = fallback
+    }
+
+    public func nextPlan(_ input: PlanningInput) async throws -> PortalPlan {
+        do {
+            return try await primary.nextPlan(input)
+        } catch {
+            return try await fallback.nextPlan(input)
+        }
+    }
+
+    public func repairTarget(old: Target, opcode: PortalAction.Opcode, intent: PortalIntent,
+                             page: PortalPage) async throws -> RepairSuggestion? {
+        do {
+            if let suggestion = try await primary.repairTarget(old: old, opcode: opcode, intent: intent, page: page) {
+                return suggestion
+            }
+        } catch {}
+        return try await fallback.repairTarget(old: old, opcode: opcode, intent: intent, page: page)
+    }
+}
