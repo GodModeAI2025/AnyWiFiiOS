@@ -36,4 +36,9 @@ public struct StaticValueProvider: ValueProvider {
 public struct SensitiveValue: Sendable, Equatable {
     public var value: String
     public var placeholder: String
+
+    public init(value: String, placeholder: String) {
+        self.value = value
+        self.placeholder = placeholder
+    }
 }

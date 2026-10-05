@@ -40,9 +40,27 @@ enum AppEnvironment {
         return EngineConfig()
     }
 
+    /// Lokales Modell, falls verfügbar (SPEC §3.2). Ohne Modell bleibt Replay deterministisch und
+    /// Lernen läuft regelbasiert.
+    static func localAssistant() -> (any AssistantModel)? {
+        // UI-Tests laufen deterministisch ohne Modell, außer `-useModel` ist gesetzt.
+        if isUITest, !ProcessInfo.processInfo.arguments.contains("-useModel") { return nil }
+        #if canImport(FoundationModels)
+        if #available(iOS 27.0, macOS 27.0, *) { return OnDeviceAssistant.make() }
+        #endif
+        return nil
+    }
+
     /// Führt einen Anmeldeversuch aus und speichert Profil und Protokoll.
     static func login(profile: PortalProfile, askValues: [String: String] = [:]) async -> LoginReport {
-        let report = await LoginCoordinator(transport: URLSessionWiFiTransport(), secrets: secrets(), config: engineConfig())
+        var planner: any PortalPlanner = HeuristicPlanner()
+        var repairer: any RecipeRepairer = HeuristicRepairer()
+        if let model = localAssistant(), await model.availability.isAvailable {
+            planner = FallbackPlanner(primary: model)
+            repairer = FallbackRepairer(primary: model)
+        }
+        let report = await LoginCoordinator(transport: URLSessionWiFiTransport(), secrets: secrets(), planner: planner,
+                                            repairer: repairer, config: engineConfig())
             .login(profile: profile, askValues: askValues)
         if report.profile != profile { try? profileStore().save(report.profile) }
         try? runLogStore().append(report.log)

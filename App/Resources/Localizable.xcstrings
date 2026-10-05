@@ -1105,6 +1105,703 @@
           }
         }
       }
+    },
+    "Jetzt anmelden": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jetzt anmelden"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign In Now"
+          }
+        }
+      }
+    },
+    "Melde an …": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Melde an …"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Signing in …"
+          }
+        }
+      }
+    },
+    "Anmeldung": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anmeldung"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign-in"
+          }
+        }
+      }
+    },
+    "Manueller Modus: Die App öffnet die Anmeldeseite des aktuellen WLANs und führt den gelernten Ablauf aus.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manueller Modus: Die App öffnet die Anmeldeseite des aktuellen WLANs und führt den gelernten Ablauf aus."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manual mode: the app opens the current network's login page and runs the learned flow."
+          }
+        }
+      }
+    },
+    "Angemeldet.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Angemeldet."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Signed in."
+          }
+        }
+      }
+    },
+    "Angemeldet. Der Ablauf wurde gelernt (Revision %lld).": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Angemeldet. Der Ablauf wurde gelernt (Revision %lld)."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Signed in. The flow was learned (revision %lld)."
+          }
+        }
+      }
+    },
+    "Anmelden": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anmelden"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign In"
+          }
+        }
+      }
+    },
+    "Das Portal braucht diesen Wert für die Anmeldung.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Portal braucht diesen Wert für die Anmeldung."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The portal needs this value to sign in."
+          }
+        }
+      }
+    },
+    "Mit Assistent einrichten": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mit Assistent einrichten"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set Up with Assistant"
+          }
+        }
+      }
+    },
+    "Chat nicht verfügbar": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chat nicht verfügbar"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chat Unavailable"
+          }
+        }
+      }
+    },
+    "Apple Intelligence ist ausgeschaltet. Schalte es in den Einstellungen ein oder nutze den Erweitert-Editor.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple Intelligence ist ausgeschaltet. Schalte es in den Einstellungen ein oder nutze den Erweitert-Editor."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple Intelligence is turned off. Turn it on in Settings or use the advanced editor."
+          }
+        }
+      }
+    },
+    "Das Modell wird noch geladen. Versuche es später erneut oder nutze den Erweitert-Editor.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Modell wird noch geladen. Versuche es später erneut oder nutze den Erweitert-Editor."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The model is still loading. Try again later or use the advanced editor."
+          }
+        }
+      }
+    },
+    "Auf diesem Gerät ist kein lokales Modell verfügbar. Der Erweitert-Editor bleibt nutzbar.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auf diesem Gerät ist kein lokales Modell verfügbar. Der Erweitert-Editor bleibt nutzbar."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No on-device model is available on this device. The advanced editor remains available."
+          }
+        }
+      }
+    },
+    "Beschreibe, was bei der Anmeldung passieren soll. Zum Beispiel: Datenschutz und Nutzungsbedingungen akzeptieren, Zimmernummer und Nachname eintragen, dann verbinden.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beschreibe, was bei der Anmeldung passieren soll. Zum Beispiel: Datenschutz und Nutzungsbedingungen akzeptieren, Zimmernummer und Nachname eintragen, dann verbinden."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Describe what should happen during sign-in. For example: accept privacy and terms, enter room number and last name, then connect."
+          }
+        }
+      }
+    },
+    "Sensible Werte bitte nicht in den Chat schreiben. Trage sie unten im sicheren Feld ein.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sensible Werte bitte nicht in den Chat schreiben. Trage sie unten im sicheren Feld ein."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Please don't type sensitive values into the chat. Enter them in the secure field below."
+          }
+        }
+      }
+    },
+    "Zusammenfassung": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zusammenfassung"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Summary"
+          }
+        }
+      }
+    },
+    "Pflicht-Einwilligungen akzeptieren": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pflicht-Einwilligungen akzeptieren"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accept required consents"
+          }
+        }
+      }
+    },
+    "%@ bei Bedarf abfragen": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ bei Bedarf abfragen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ask for %@ when needed"
+          }
+        }
+      }
+    },
+    "%@ sicher speichern": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ sicher speichern"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Store %@ securely"
+          }
+        }
+      }
+    },
+    "Wert (bleibt im Schlüsselbund)": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wert (bleibt im Schlüsselbund)"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Value (stays in the Keychain)"
+          }
+        }
+      }
+    },
+    "Marketing-Einwilligungen erlaubt": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Marketing-Einwilligungen erlaubt"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Marketing consents allowed"
+          }
+        }
+      }
+    },
+    "Verbindung absenden": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbindung absenden"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Submit connection"
+          }
+        }
+      }
+    },
+    "Portal-Vorschau": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Portal-Vorschau"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Portal Preview"
+          }
+        }
+      }
+    },
+    "Elemente der Portalseite laden": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elemente der Portalseite laden"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Load portal page elements"
+          }
+        }
+      }
+    },
+    "Pflicht": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pflicht"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Required"
+          }
+        }
+      }
+    },
+    "Aufnahme beenden": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aufnahme beenden"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop recording"
+          }
+        }
+      }
+    },
+    "Spracheingabe": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spracheingabe"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voice input"
+          }
+        }
+      }
+    },
+    "Nachricht": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nachricht"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Message"
+          }
+        }
+      }
+    },
+    "Das hat nicht geklappt. Formuliere es bitte anders.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das hat nicht geklappt. Formuliere es bitte anders."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That didn't work. Please rephrase."
+          }
+        }
+      }
+    },
+    "Du bist bereits online. Es gibt keine Portalseite.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Du bist bereits online. Es gibt keine Portalseite."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You're already online. There is no portal page."
+          }
+        }
+      }
+    },
+    "Die Portalseite ist nicht erreichbar. Bist du im Portal-WLAN?": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Portalseite ist nicht erreichbar. Bist du im Portal-WLAN?"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The portal page isn't reachable. Are you on the portal Wi-Fi?"
+          }
+        }
+      }
+    },
+    "Verbunden.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbunden."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connected."
+          }
+        }
+      }
+    },
+    "Vorübergehender Fehler. Der nächste Versuch kann klappen.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vorübergehender Fehler. Der nächste Versuch kann klappen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Temporary error. The next attempt may work."
+          }
+        }
+      }
+    },
+    "Dieses Portal wird nicht unterstützt.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses Portal wird nicht unterstützt."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This portal isn't supported."
+          }
+        }
+      }
+    },
+    "Ein benötigter Wert war nicht verfügbar.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein benötigter Wert war nicht verfügbar."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A required value wasn't available."
+          }
+        }
+      }
+    },
+    "Das Portal sieht anders aus als beim Lernen.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Portal sieht anders aus als beim Lernen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The portal looks different from when it was learned."
+          }
+        }
+      }
+    },
+    "Keine Verbindung zum Portal.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Verbindung zum Portal."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No connection to the portal."
+          }
+        }
+      }
+    },
+    "Das Portal hat nicht rechtzeitig geantwortet.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Portal hat nicht rechtzeitig geantwortet."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The portal didn't respond in time."
+          }
+        }
+      }
+    },
+    "Das lokale Modell ist nicht verfügbar.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das lokale Modell ist nicht verfügbar."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The on-device model isn't available."
+          }
+        }
+      }
+    },
+    "Ein vorgeschlagener Schritt wurde aus Sicherheitsgründen abgelehnt.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein vorgeschlagener Schritt wurde aus Sicherheitsgründen abgelehnt."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A proposed step was rejected for security reasons."
+          }
+        }
+      }
+    },
+    "Für dieses Portal ist eine manuelle Anmeldung nötig.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Für dieses Portal ist eine manuelle Anmeldung nötig."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This portal requires manual sign-in."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

@@ -37,6 +37,8 @@ targets:
         # Captive Portals sprechen vor der Anmeldung nur HTTP. Ohne Ausnahme könnte die App sie nicht bedienen.
         NSAppTransportSecurity:
           NSAllowsArbitraryLoads: true
+        NSMicrophoneUsageDescription: "Für die Spracheingabe, wenn du die Anmeldung per Sprache beschreibst. Audio wird nur auf dem Gerät verarbeitet."
+        NSSpeechRecognitionUsageDescription: "Für die Spracheingabe. Die Erkennung läuft auf dem Gerät."
         UILaunchScreen: {}
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
