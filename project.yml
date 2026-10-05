@@ -1,6 +1,6 @@
 name: CaptiveAI
 options:
-  bundleIdPrefix: com.example
+  bundleIdPrefix: de.mobilebox
   deploymentTarget:
     iOS: "27.0"
   developmentLanguage: de
@@ -12,7 +12,7 @@ settings:
     TARGETED_DEVICE_FAMILY: "1,2"
     MARKETING_VERSION: "0.1.0"
     CURRENT_PROJECT_VERSION: "1"
-    DEVELOPMENT_TEAM: ""
+    DEVELOPMENT_TEAM: SP73Z8JWXM
 packages:
   CaptiveCore:
     path: Packages/CaptiveCore
@@ -33,7 +33,7 @@ targetTemplates:
       properties:
         CFBundleDisplayName: CaptiveAI
         CFBundleShortVersionString: "$(MARKETING_VERSION)"
-        CaptiveKeychainGroup: "$(AppIdentifierPrefix)com.example.captiveai.shared"
+        CaptiveKeychainGroup: "$(AppIdentifierPrefix)de.mobilebox.captiveai.shared"
         # Captive Portals sprechen vor der Anmeldung nur HTTP. Ohne Ausnahme könnte die App sie nicht bedienen.
         NSAppTransportSecurity:
           NSAllowsArbitraryLoads: true
@@ -49,9 +49,9 @@ targetTemplates:
             LSHandlerRank: Owner
             CFBundleTypeRole: Editor
             LSItemContentTypes:
-              - com.example.captiveai.profile
+              - de.mobilebox.captiveai.profile
         UTExportedTypeDeclarations:
-          - UTTypeIdentifier: com.example.captiveai.profile
+          - UTTypeIdentifier: de.mobilebox.captiveai.profile
             UTTypeDescription: CaptiveAI Profil
             UTTypeConformsTo:
               - public.data
@@ -75,7 +75,7 @@ targetTemplates:
       path: App/CaptiveAI.entitlements
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.example.captiveai
+        PRODUCT_BUNDLE_IDENTIFIER: de.mobilebox.captiveai
         CODE_SIGN_ENTITLEMENTS: App/CaptiveAI.entitlements
         GENERATE_INFOPLIST_FILE: NO
 
@@ -108,7 +108,7 @@ targets:
       properties:
         CFBundleDisplayName: CaptiveAI Steuerelemente
         CFBundleShortVersionString: "$(MARKETING_VERSION)"
-        CaptiveKeychainGroup: "$(AppIdentifierPrefix)com.example.captiveai.shared"
+        CaptiveKeychainGroup: "$(AppIdentifierPrefix)de.mobilebox.captiveai.shared"
         NSAppTransportSecurity:
           NSAllowsArbitraryLoads: true
         NSExtension:
@@ -117,12 +117,12 @@ targets:
       path: Controls/CaptiveAIControls.entitlements
       properties:
         com.apple.security.application-groups:
-          - group.com.example.captiveai
+          - group.de.mobilebox.captiveai
         keychain-access-groups:
-          - $(AppIdentifierPrefix)com.example.captiveai.shared
+          - $(AppIdentifierPrefix)de.mobilebox.captiveai.shared
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.example.captiveai.controls
+        PRODUCT_BUNDLE_IDENTIFIER: de.mobilebox.captiveai.controls
         GENERATE_INFOPLIST_FILE: NO
         SKIP_INSTALL: YES
   HotspotEvaluationProvider:
@@ -141,7 +141,7 @@ targets:
       properties:
         CFBundleDisplayName: CaptiveAI Evaluation
         CFBundleShortVersionString: "$(MARKETING_VERSION)"
-        CaptiveKeychainGroup: "$(AppIdentifierPrefix)com.example.captiveai.shared"
+        CaptiveKeychainGroup: "$(AppIdentifierPrefix)de.mobilebox.captiveai.shared"
         EXAppExtensionAttributes:
           EXExtensionPointIdentifier: com.apple.networkextension.hotspot-evaluation
     entitlements:
@@ -150,12 +150,12 @@ targets:
         com.apple.developer.networking.networkextension:
           - hotspot-provider
         com.apple.security.application-groups:
-          - group.com.example.captiveai
+          - group.de.mobilebox.captiveai
         keychain-access-groups:
-          - $(AppIdentifierPrefix)com.example.captiveai.shared
+          - $(AppIdentifierPrefix)de.mobilebox.captiveai.shared
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.example.captiveai.evaluation
+        PRODUCT_BUNDLE_IDENTIFIER: de.mobilebox.captiveai.evaluation
         GENERATE_INFOPLIST_FILE: NO
         SKIP_INSTALL: YES
   HotspotAuthenticationProvider:
@@ -174,7 +174,7 @@ targets:
       properties:
         CFBundleDisplayName: CaptiveAI Anmeldung
         CFBundleShortVersionString: "$(MARKETING_VERSION)"
-        CaptiveKeychainGroup: "$(AppIdentifierPrefix)com.example.captiveai.shared"
+        CaptiveKeychainGroup: "$(AppIdentifierPrefix)de.mobilebox.captiveai.shared"
         NSAppTransportSecurity:
           NSAllowsArbitraryLoads: true
         EXAppExtensionAttributes:
@@ -185,12 +185,12 @@ targets:
         com.apple.developer.networking.networkextension:
           - hotspot-provider
         com.apple.security.application-groups:
-          - group.com.example.captiveai
+          - group.de.mobilebox.captiveai
         keychain-access-groups:
-          - $(AppIdentifierPrefix)com.example.captiveai.shared
+          - $(AppIdentifierPrefix)de.mobilebox.captiveai.shared
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.example.captiveai.authentication
+        PRODUCT_BUNDLE_IDENTIFIER: de.mobilebox.captiveai.authentication
         GENERATE_INFOPLIST_FILE: NO
         SKIP_INSTALL: YES
   CaptiveUITests:
@@ -202,7 +202,7 @@ targets:
       - target: CaptiveAIAppDev
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.example.captiveai.uitests
+        PRODUCT_BUNDLE_IDENTIFIER: de.mobilebox.captiveai.uitests
         GENERATE_INFOPLIST_FILE: YES
 schemes:
   CaptiveAI:

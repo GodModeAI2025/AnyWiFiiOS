@@ -4,7 +4,7 @@ import CaptiveCore
 import CaptiveCoreApple
 
 extension UTType {
-    static let captiveProfile = UTType(exportedAs: "com.example.captiveai.profile")
+    static let captiveProfile = UTType(exportedAs: "de.mobilebox.captiveai.profile")
 }
 
 struct ImportExportView: View {

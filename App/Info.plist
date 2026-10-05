@@ -29,7 +29,7 @@
 			<string>Owner</string>
 			<key>LSItemContentTypes</key>
 			<array>
-				<string>com.example.captiveai.profile</string>
+				<string>de.mobilebox.captiveai.profile</string>
 			</array>
 		</dict>
 	</array>
@@ -48,7 +48,7 @@
 	<key>CFBundleVersion</key>
 	<string>1</string>
 	<key>CaptiveKeychainGroup</key>
-	<string>$(AppIdentifierPrefix)com.example.captiveai.shared</string>
+	<string>$(AppIdentifierPrefix)de.mobilebox.captiveai.shared</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
@@ -84,7 +84,7 @@
 			<key>UTTypeDescription</key>
 			<string>CaptiveAI Profil</string>
 			<key>UTTypeIdentifier</key>
-			<string>com.example.captiveai.profile</string>
+			<string>de.mobilebox.captiveai.profile</string>
 			<key>UTTypeTagSpecification</key>
 			<dict>
 				<key>public.filename-extension</key>

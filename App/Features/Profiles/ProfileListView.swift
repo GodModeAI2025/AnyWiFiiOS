@@ -24,7 +24,7 @@ struct ProfileListView: View {
                         ForEach(model.profiles) { p in
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(p.name).font(.headline)
-                                Text(p.network.ssidExact).font(.subheadline).foregroundStyle(.secondary)
+                                Text(p.network.ssidExact).font(.subheadline).foregroundStyle(.primary.opacity(0.7))
                             }
                             .frame(minHeight: 44, alignment: .leading)
                             .contentShape(Rectangle())

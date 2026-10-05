@@ -30,3 +30,4 @@ Punkte, die sich nicht im Simulator oder in CI prüfen lassen (SPEC §7, Regel 5
 - [ ] iPad: Seitenleiste und Detail in Hoch- und Querformat, Drag and Drop einer `.yaml` und `.captiveprofile` auf ein Profil.
 - [ ] Spracheingabe auf Gerät (Deutsch und Englisch), Mikrofon- und Spracherkennungs-Dialoge.
 - [ ] Privacy-Manifest: App-Store-Connect-Validierung ohne Warnung.
+- [ ] iPad: Kontrast der Seitenleiste (Material) im Hell- und Dunkelmodus prüfen, der automatische Audit läuft dort ohne Kontrast.

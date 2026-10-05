@@ -14,7 +14,7 @@ public struct KeychainSecretStore: SecretStore {
     public let service: String
     public let accessGroup: String?
 
-    public init(service: String = "com.example.captiveai", accessGroup: String? = nil) {
+    public init(service: String = "de.mobilebox.captiveai", accessGroup: String? = nil) {
         self.service = service
         self.accessGroup = accessGroup
     }
