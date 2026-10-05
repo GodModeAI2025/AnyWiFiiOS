@@ -67,3 +67,63 @@ import Foundation
         #expect(await provider.value(for: .keychain("hotel.lastName")) == nil)
     }
 }
+
+@Suite struct LoginCoordinatorTests {
+    private func hotelProfile(remember: Bool = true) -> PortalProfile {
+        PortalProfile(name: "Hotel", network: .init(ssidExact: "Hotel_Guest"),
+                      intent: Kit.hotelIntent,
+                      credentialBindings: [
+                        .init(concept: "lastName", keychainKey: "hotel.lastName", prompt: "Nachname", persistence: .rememberInKeychain),
+                        .init(concept: "roomNumber", keychainKey: "hotel.room", prompt: "Zimmer", persistence: remember ? .rememberInKeychain : .askEveryTime),
+                      ])
+    }
+
+    @Test func firstRunLearnsSecondRunReplaysWithoutModel() async throws {
+        let secrets = InMemorySecretStore(["hotel.lastName": "Example"])
+        let profile = hotelProfile()
+        let first = await LoginCoordinator(transport: MockPortalSite(steps: Scenarios.hotel), secrets: secrets)
+            .login(profile: profile, askValues: ["roomNumber": "417"])
+        #expect(first.result.outcome == .success)
+        #expect(first.learned)
+        #expect(first.profile.recipeRevision == 1)
+        #expect(first.result.modelCalls > 0)
+        #expect(first.log.events.isEmpty == false)
+
+        // roomNumber hat Persistenz "merken": nach Erfolg liegt der Wert im Store
+        #expect(try secrets.read("hotel.room") == "417")
+
+        let second = await LoginCoordinator(transport: MockPortalSite(steps: Scenarios.hotel), secrets: secrets)
+            .login(profile: first.profile, askValues: ["roomNumber": "417"])
+        #expect(second.result.outcome == .success)
+        #expect(second.usedRecipe)
+        #expect(second.result.modelCalls == 0)
+        #expect(second.profile.recipeRevision == 1)
+    }
+
+    @Test func missingValueIsReportedAndNothingStored() async {
+        let secrets = InMemorySecretStore(["hotel.lastName": "Example"])
+        let r = await LoginCoordinator(transport: MockPortalSite(steps: Scenarios.hotel), secrets: secrets)
+            .login(profile: hotelProfile())
+        #expect(r.result.outcome == .missingUserValue)
+        #expect(r.result.requiredConcept == "roomNumber")
+        #expect(r.profile.recipe == nil)
+        #expect(!secrets.contains("hotel.room"))
+    }
+
+    @Test func runLogHasNoSecretsAndStoreRoundTrips() async throws {
+        let secrets = InMemorySecretStore(["hotel.lastName": "Example"])
+        let r = await LoginCoordinator(transport: MockPortalSite(steps: Scenarios.hotel), secrets: secrets)
+            .login(profile: hotelProfile(), askValues: ["roomNumber": "417"])
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("runlog-\(UUID().uuidString)")
+        let store = RunLogStore(directory: dir, maxEntries: 2)
+        try store.append(r.log)
+        // Strukturell prüfen statt auf Teilstrings: UUIDs und Zeiten können zufällig "417" enthalten.
+        let text = String(decoding: try JSONEncoder().encode(r.log.events), as: UTF8.self)
+        #expect(!text.contains("Example"))
+        for e in r.log.events { #expect(e.value == nil || e.value!.hasPrefix("<")) }
+        #expect(!(r.log.reason ?? "").contains("417"))
+        #expect(store.all().first?.outcome == .success)
+        for _ in 0..<3 { try store.append(RunLog(profileId: r.log.profileId, profileName: "x", startedAt: Date(), durationMs: 1, outcome: .timeout, reason: nil, requiredConcept: nil, failedStage: nil, usedRecipe: false, recipeRevision: 0, events: [])) }
+        #expect(store.all().count == 2)
+    }
+}

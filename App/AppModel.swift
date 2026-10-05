@@ -6,38 +6,55 @@ import CaptiveCoreApple
 /// Secrets im Keychain.
 @Observable @MainActor
 final class AppModel {
-    static let appGroup = "group.com.example.captiveai"
-    static let keychainService = "com.example.captiveai"
-
     private(set) var profiles: [PortalProfile] = []
     let store: ProfileStore
     let secrets: any SecretStore
+    let logs: RunLogStore
+    private(set) var runLogs: [RunLog] = []
+    private(set) var running: Set<UUID> = []
 
-    init(store: ProfileStore, secrets: any SecretStore) {
+    init(store: ProfileStore, secrets: any SecretStore, logs: RunLogStore) {
         self.store = store
         self.secrets = secrets
+        self.logs = logs
         reload()
     }
 
-    /// UI-Tests (`-uitest`) laufen isoliert: temporäres Verzeichnis, Secrets im Speicher.
     static func make() -> AppModel {
-        let args = ProcessInfo.processInfo.arguments
-        if args.contains("-uitest") {
-            let dir = FileManager.default.temporaryDirectory.appendingPathComponent("captive-uitest-\(UUID().uuidString)")
-            return AppModel(store: ProfileStore(directory: dir), secrets: InMemorySecretStore())
-        }
-        let base = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroup)
-            ?? FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-        let store = ProfileStore(directory: base.appendingPathComponent("Profiles", isDirectory: true))
-        #if targetEnvironment(simulator)
-        let group: String? = nil
-        #else
-        let group = Bundle.main.object(forInfoDictionaryKey: "CaptiveKeychainGroup") as? String
-        #endif
-        return AppModel(store: store, secrets: KeychainSecretStore(service: keychainService, accessGroup: group))
+        let model = AppModel(store: AppEnvironment.profileStore(), secrets: AppEnvironment.secrets(),
+                             logs: AppEnvironment.runLogStore())
+        if ProcessInfo.processInfo.arguments.contains("-seedHotel") { model.seedHotelProfile() }
+        return model
     }
 
-    func reload() { profiles = store.loadAll() }
+    func reload() {
+        profiles = store.loadAll()
+        runLogs = logs.all()
+    }
+
+    /// Meldet an. Das Ergebnis enthält fehlende Werte als `missingUserValue` samt Konzept.
+    func login(_ id: UUID, askValues: [String: String] = [:]) async -> LoginReport? {
+        guard let p = profile(id), !running.contains(id) else { return nil }
+        running.insert(id)
+        defer { running.remove(id) }
+        let report = await AppEnvironment.login(profile: p, askValues: askValues)
+        reload()
+        return report
+    }
+
+    /// Testprofil für UI-Tests (`-seedHotel`): Nachname im Schlüsselbund, Zimmernummer wird erfragt.
+    func seedHotelProfile() {
+        let last = CredentialBinding(concept: "lastName", keychainKey: "seed.lastName", prompt: "Nachname", persistence: .rememberInKeychain)
+        let room = CredentialBinding(concept: "roomNumber", keychainKey: "seed.room", prompt: "Zimmernummer", persistence: .askEveryTime)
+        let intent = PortalIntent(instructions: [.acceptRequiredTerms, .acceptRequiredPrivacy,
+                                                 .fill(concept: "roomNumber", source: .askWhenMissing),
+                                                 .fill(concept: "lastName", source: .keychain), .submit])
+        let p = PortalProfile(name: "Testhotel", network: .init(ssidExact: "Test_Guest"), intent: intent,
+                              credentialBindings: [last, room])
+        try? secrets.write("Example", for: "seed.lastName")
+        try? store.save(p)
+        reload()
+    }
 
     func profile(_ id: UUID) -> PortalProfile? { profiles.first { $0.id == id } }
 
