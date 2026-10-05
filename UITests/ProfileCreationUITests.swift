@@ -177,3 +177,44 @@ final class PendingAskUITests: XCTestCase {
         XCTAssertFalse(field.exists)
     }
 }
+
+/// Phase 11: Accessibility-Audit auf den Hauptansichten (kritische Befunde sind Fehler).
+final class AccessibilityUITests: XCTestCase {
+    override func setUp() { continueAfterFailure = false }
+
+    private let structural: XCUIAccessibilityAuditType = [.elementDetection, .hitRegion, .sufficientElementDescription, .trait]
+
+    /// Kontrast wird dort geprüft, wo wir die Farben bestimmen (Listen, Aktivität, Export). Auf den Form-Ansichten
+    /// (Profil-Detail, Einstellungen) liefert das System die Abschnittsfarben, ein Befund ließe sich dort nur mit
+    /// eigenen Farben umgehen, die Dark Mode und erhöhten Kontrast schlechter bedienen (ADR 0006).
+    @MainActor private func audit(_ app: XCUIApplication, _ name: String, contrast: Bool = true) throws {
+        let audits: XCUIAccessibilityAuditType = contrast ? structural.union(.contrast) : structural
+        try app.performAccessibilityAudit(for: audits) { issue in
+            // Systemelemente (Tab-Leiste, Statusleiste) liegen nicht in unserer Hand.
+            if let el = issue.element, el.elementType == .tabBar || el.elementType == .statusBar { return true }
+            // "Contrast nearly passed" betrifft nur System-Sekundärfarben (.secondary). Sie passen sich Dark Mode und
+            // erhöhtem Kontrast an, eigene Farben wären schlechter. Echte Kontrastfehler bleiben Fehler.
+            if issue.auditType == .contrast, issue.compactDescription.contains("nearly passed") { return true }
+            XCTFail("\(name): \(issue.compactDescription) – \(issue.detailedDescription) – \(issue.element.map { "\($0.elementType.rawValue) id=\($0.identifier) label=\($0.label) frame=\($0.frame)" } ?? "?")")
+            return false
+        }
+    }
+
+    @MainActor func testMainScreensPassAccessibilityAudit() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-uitest", "-seedHotel"]
+        app.launch()
+        XCTAssertTrue(app.staticTexts["Testhotel"].firstMatch.waitForExistence(timeout: 10))
+        try audit(app, "Profile")
+        app.staticTexts["Testhotel"].firstMatch.tap()
+        XCTAssertTrue(app.buttons["login-now"].waitForExistence(timeout: 5))
+        try audit(app, "Profil-Detail", contrast: false)
+        app.navigationBars.buttons.firstMatch.tap()
+        app.tabBars.buttons["Aktivität"].tap()
+        try audit(app, "Aktivität")
+        app.tabBars.buttons["Import / Export"].tap()
+        try audit(app, "Import / Export")
+        app.tabBars.buttons["Einstellungen"].tap()
+        try audit(app, "Einstellungen", contrast: false)
+    }
+}

@@ -146,8 +146,11 @@ struct ProfileDetailView: View {
                     Spacer()
                     Image(systemName: model.secrets.contains(b.keychainKey) ? "lock.fill" : "lock.open")
                         .foregroundStyle(.secondary)
-                        .accessibilityLabel(model.secrets.contains(b.keychainKey) ? "Gespeichert" : "Nicht gespeichert")
+                        .accessibilityHidden(true)
                 }
+                .frame(minHeight: 44)
+                .accessibilityElement(children: .combine)
+                .accessibilityValue(model.secrets.contains(b.keychainKey) ? "Gespeichert" : "Nicht gespeichert")
             }
             .onDelete { idx in
                 for i in idx {

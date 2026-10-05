@@ -127,6 +127,8 @@ final class AppModel {
         pendingImport = PendingImport(yaml: yaml, profileID: target)
     }
 
+    func repairContext(for log: RunLog) -> RepairContext? { AppEnvironment.repairStore().load(runId: log.id) }
+
     func debugBundleURL(for log: RunLog) -> URL? {
         guard let name = log.debugBundle else { return nil }
         let u = AppEnvironment.debugDirectory().appendingPathComponent(name)

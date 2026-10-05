@@ -24,6 +24,17 @@ enum AppEnvironment {
 
     static func pendingStore() -> PendingStore { PendingStore(directory: base.appendingPathComponent("Pending", isDirectory: true)) }
 
+    static func repairStore() -> RepairContextStore { RepairContextStore(directory: base.appendingPathComponent("Repair", isDirectory: true)) }
+
+    /// Private Cloud Compute: nur für das Repair Center, nie im Live-Login (01 §15).
+    static func pccAssistant() -> (any AssistantModel)? {
+        if isUITest { return nil }
+        #if canImport(FoundationModels)
+        if #available(iOS 27.0, macOS 27.0, *) { return PCCAssistant.make() }
+        #endif
+        return nil
+    }
+
     static func debugDirectory() -> URL { base.appendingPathComponent("Debug", isDirectory: true) }
 
     static func secrets() -> any SecretStore {
@@ -71,6 +82,7 @@ enum AppEnvironment {
         if report.result.outcome != .success {
             log.debugBundle = await writeDebugBundle(profile: report.profile, report: report)
         }
+        if let ctx = RepairContext.make(from: report.result, runId: log.id, profileId: profile.id) { try? repairStore().save(ctx) }
         try? runLogStore().append(log)
         return report
     }
