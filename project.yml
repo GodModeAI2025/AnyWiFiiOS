@@ -45,6 +45,22 @@ targets:
             CFBundleTypeRole: Viewer
             LSItemContentTypes:
               - public.yaml
+          - CFBundleTypeName: CaptiveAI Profil
+            LSHandlerRank: Owner
+            CFBundleTypeRole: Editor
+            LSItemContentTypes:
+              - com.example.captiveai.profile
+        UTExportedTypeDeclarations:
+          - UTTypeIdentifier: com.example.captiveai.profile
+            UTTypeDescription: CaptiveAI Profil
+            UTTypeConformsTo:
+              - public.data
+              - public.content
+            UTTypeTagSpecification:
+              public.filename-extension:
+                - captiveprofile
+              public.mime-type:
+                - application/x-captiveprofile
         UILaunchScreen: {}
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait

@@ -22,6 +22,10 @@ let package = Package(
             dependencies: ["CaptiveCore"]
         ),
         .testTarget(
+            name: "CaptiveCoreAppleTests",
+            dependencies: ["CaptiveCoreApple", "CaptiveCore"]
+        ),
+        .testTarget(
             name: "CaptiveCoreTests",
             dependencies: ["CaptiveCore"],
             resources: [.copy("Fixtures")]

@@ -17,6 +17,49 @@ final class AppModel {
 
     struct PendingImport: Identifiable { let id = UUID(); var yaml: String; var profileID: UUID? }
 
+    /// Geöffnetes `.captiveprofile` wartet auf Vorschau und Bestätigung.
+    var pendingProfileImport: PendingProfileImport?
+
+    struct PendingProfileImport: Identifiable { let id = UUID(); var data: Data }
+
+    /// Zentraler Einstieg für geöffnete Dateien (onOpenURL, Dateiauswahl, Drag and Drop).
+    func open(_ url: URL, recipeTarget: UUID? = nil) {
+        if url.pathExtension.lowercased() == ProfileExporter.fileExtension {
+            let scoped = url.startAccessingSecurityScopedResource()
+            defer { if scoped { url.stopAccessingSecurityScopedResource() } }
+            if let data = try? Data(contentsOf: url), data.count <= ProfileImporter.maxContainerBytes {
+                pendingProfileImport = PendingProfileImport(data: data)
+            }
+        } else {
+            openRecipeFile(url, profileID: recipeTarget)
+        }
+    }
+
+    /// Erzeugt die Exportdatei im temporären Verzeichnis. Zugangsdaten nur mit Opt-in (SPEC §3.4).
+    func exportFile(profileID: UUID, includeCredentials: Bool, passphrase: String?, unencryptedConfirmed: Bool) throws -> URL {
+        guard let p = profile(profileID) else { throw SharingError.noCredentialsToShare }
+        var credentials: SharedCredentials?
+        if includeCredentials {
+            var values: [String: String] = [:]
+            for b in p.credentialBindings where b.persistence == .rememberInKeychain {
+                if let v = (try? secrets.read(b.keychainKey)) ?? nil, !v.isEmpty { values[b.concept] = v }
+            }
+            let wifi = p.wifi?.passphraseKeychainKey.flatMap { (try? secrets.read($0)) ?? nil }
+            credentials = SharedCredentials(values: values, wifiPassphrase: wifi)
+        }
+        let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1"
+        let data = try ProfileExporter.export(
+            profile: p, credentials: credentials,
+            options: ExportOptions(includeCredentials: includeCredentials, passphrase: passphrase,
+                                   confirmedUnencrypted: unencryptedConfirmed, appVersion: version),
+            cipher: CryptoKitCredentialCipher())
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("export-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        let url = dir.appendingPathComponent(ProfileExporter.filename(for: p))
+        try data.write(to: url, options: .atomic)
+        return url
+    }
+
     init(store: ProfileStore, secrets: any SecretStore, logs: RunLogStore) {
         self.store = store
         self.secrets = secrets

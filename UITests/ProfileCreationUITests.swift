@@ -134,3 +134,27 @@ final class DebugBundleUITests: XCTestCase {
         XCTAssertTrue(share.waitForExistence(timeout: 10), "Debug-Paket nach Fehlschlag")
     }
 }
+
+/// Phase 7: Export ohne Werte als Standard, Opt-in mit Bestätigung nach Konzept (ohne Klartext).
+final class SharingUITests: XCTestCase {
+    override func setUp() { continueAfterFailure = false }
+
+    @MainActor func testExportDefaultsAndCredentialOptIn() {
+        let app = XCUIApplication()
+        app.launchArguments = ["-uitest", "-seedHotel"]
+        app.launch()
+        app.tabBars.buttons["Import / Export"].tap()
+        app.buttons["export-Testhotel"].tap()
+
+        app.buttons["create-export"].tap()
+        XCTAssertTrue(app.buttons["share-file"].waitForExistence(timeout: 10), "Standardexport ohne Zugangsdaten")
+
+        app.switches["share-credentials"].switches.firstMatch.tap()
+        let alert = app.alerts["Zugangsdaten mitteilen?"]
+        XCTAssertTrue(alert.waitForExistence(timeout: 5))
+        XCTAssertTrue(alert.staticTexts.containing(NSPredicate(format: "label CONTAINS 'Nachname'")).firstMatch.exists)
+        XCTAssertFalse(alert.staticTexts.containing(NSPredicate(format: "label CONTAINS 'Example'")).firstMatch.exists, "Nie Klartext im Dialog")
+        alert.buttons["Abbrechen"].tap()
+        XCTAssertFalse(app.secureTextFields["export-passphrase"].exists)
+    }
+}

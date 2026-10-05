@@ -56,11 +56,11 @@ struct ProfileDetailView: View {
             }
         }
         .fileImporter(isPresented: $showImporter, allowedContentTypes: [.yaml, .plainText, .text]) { result in
-            if case .success(let url) = result { model.openRecipeFile(url, profileID: profileID) }
+            if case .success(let url) = result { model.open(url, recipeTarget: profileID) }
         }
         .dropDestination(for: URL.self) { urls, _ in
             guard let url = urls.first else { return false }
-            model.openRecipeFile(url, profileID: profileID)
+            model.open(url, recipeTarget: profileID)
             return true
         }
         .sheet(isPresented: $showRevisions) { RevisionsView(profileID: profileID) }
