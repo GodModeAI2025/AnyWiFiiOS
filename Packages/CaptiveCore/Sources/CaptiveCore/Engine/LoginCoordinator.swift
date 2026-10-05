@@ -53,8 +53,7 @@ public struct LoginCoordinator: Sendable {
                let patched = try? patch.apply(to: recipe, bindings: profile.credentialBindings) {
                 let retry = await engine.replay(patched)
                 if retry.outcome == .success {
-                    updated.recipe = patched
-                    updated.recipeRevision += 1
+                    updated.commit(patched, note: "Automatische Reparatur")
                     repairedWith = patch
                     result = retry
                 }
@@ -65,8 +64,7 @@ public struct LoginCoordinator: Sendable {
                 let recipe = TraceCompiler.compile(trace: result.trace, name: profile.name,
                                                    ssid: profile.network.ssidExact, profileId: profile.id.uuidString)
                 if SecurityValidator.errors(recipe, bindings: profile.credentialBindings).isEmpty {
-                    updated.recipe = recipe
-                    updated.recipeRevision += 1
+                    updated.commit(recipe, note: "Gelernt")
                     learned = true
                 }
             }
@@ -81,7 +79,7 @@ public struct LoginCoordinator: Sendable {
                          durationMs: result.durationMs, outcome: result.outcome, reason: result.reason,
                          requiredConcept: result.requiredConcept, failedStage: result.failedStageId,
                          usedRecipe: usedRecipe, recipeRevision: updated.recipeRevision,
-                         events: result.trace.map(TraceRecord.init))
+                         events: result.trace.map(TraceRecord.init), learned: learned, repaired: repairedWith != nil)
         return LoginReport(profile: updated, result: result, log: log, learned: learned, usedRecipe: usedRecipe, repairedWith: repairedWith)
     }
 }

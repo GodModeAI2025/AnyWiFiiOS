@@ -39,8 +39,7 @@ struct RecipeEditorView: View {
                     Button("Übernehmen") {
                         guard let recipe = validate() else { return }
                         var p = profile
-                        p.recipe = recipe
-                        p.recipeRevision += 1
+                        p.commit(recipe, note: "Editor")
                         onSave(p)
                         dismiss()
                     }

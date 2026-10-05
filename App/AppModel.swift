@@ -12,6 +12,10 @@ final class AppModel {
     let logs: RunLogStore
     private(set) var runLogs: [RunLog] = []
     private(set) var running: Set<UUID> = []
+    /// Von außen geöffnete Recipe-Datei (onOpenURL, Drag & Drop) wartet auf Zuordnung und Bestätigung.
+    var pendingImport: PendingImport?
+
+    struct PendingImport: Identifiable { let id = UUID(); var yaml: String; var profileID: UUID? }
 
     init(store: ProfileStore, secrets: any SecretStore, logs: RunLogStore) {
         self.store = store
@@ -54,6 +58,26 @@ final class AppModel {
         try? secrets.write("Example", for: "seed.lastName")
         try? store.save(p)
         reload()
+    }
+
+    /// Liest eine Recipe-Datei und ordnet sie über profileId oder SSID einem Profil zu.
+    func openRecipeFile(_ url: URL, profileID: UUID? = nil) {
+        let scoped = url.startAccessingSecurityScopedResource()
+        defer { if scoped { url.stopAccessingSecurityScopedResource() } }
+        guard let data = try? Data(contentsOf: url), data.count < 1_000_000,
+              let yaml = String(data: data, encoding: .utf8) else { return }
+        var target = profileID
+        if target == nil, let recipe = try? PRLCodec.parse(yaml: yaml) {
+            target = profiles.first { $0.id.uuidString == recipe.profileId }?.id
+                ?? profiles.first { $0.network.ssidExact == recipe.ssid }?.id
+        }
+        pendingImport = PendingImport(yaml: yaml, profileID: target)
+    }
+
+    func debugBundleURL(for log: RunLog) -> URL? {
+        guard let name = log.debugBundle else { return nil }
+        let u = AppEnvironment.debugDirectory().appendingPathComponent(name)
+        return FileManager.default.fileExists(atPath: u.path) ? u : nil
     }
 
     func profile(_ id: UUID) -> PortalProfile? { profiles.first { $0.id == id } }

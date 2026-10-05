@@ -39,6 +39,12 @@ targets:
           NSAllowsArbitraryLoads: true
         NSMicrophoneUsageDescription: "Für die Spracheingabe, wenn du die Anmeldung per Sprache beschreibst. Audio wird nur auf dem Gerät verarbeitet."
         NSSpeechRecognitionUsageDescription: "Für die Spracheingabe. Die Erkennung läuft auf dem Gerät."
+        CFBundleDocumentTypes:
+          - CFBundleTypeName: CaptiveAI Recipe
+            LSHandlerRank: Alternate
+            CFBundleTypeRole: Viewer
+            LSItemContentTypes:
+              - public.yaml
         UILaunchScreen: {}
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait

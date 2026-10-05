@@ -14,10 +14,15 @@ public struct RunLog: Codable, Identifiable, Equatable, Sendable {
     public var usedRecipe: Bool
     public var recipeRevision: Int
     public var events: [TraceRecord]
+    public var learned: Bool
+    public var repaired: Bool
+    /// Dateiname des automatisch erzeugten Debug-Pakets (Ausgang ≠ success).
+    public var debugBundle: String?
 
     public init(id: UUID = UUID(), profileId: UUID, profileName: String, startedAt: Date, durationMs: Int,
                 outcome: Outcome, reason: String?, requiredConcept: String?, failedStage: String?,
-                usedRecipe: Bool, recipeRevision: Int, events: [TraceRecord]) {
+                usedRecipe: Bool, recipeRevision: Int, events: [TraceRecord],
+                learned: Bool = false, repaired: Bool = false, debugBundle: String? = nil) {
         self.id = id
         self.profileId = profileId
         self.profileName = profileName
@@ -30,6 +35,33 @@ public struct RunLog: Codable, Identifiable, Equatable, Sendable {
         self.usedRecipe = usedRecipe
         self.recipeRevision = recipeRevision
         self.events = events
+        self.learned = learned
+        self.repaired = repaired
+        self.debugBundle = debugBundle
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id, profileId, profileName, startedAt, durationMs, outcome, reason, requiredConcept, failedStage
+        case usedRecipe, recipeRevision, events, learned, repaired, debugBundle
+    }
+
+    public init(from d: Decoder) throws {
+        let c = try d.container(keyedBy: CodingKeys.self)
+        id = try c.decode(UUID.self, forKey: .id)
+        profileId = try c.decode(UUID.self, forKey: .profileId)
+        profileName = try c.decode(String.self, forKey: .profileName)
+        startedAt = try c.decode(Date.self, forKey: .startedAt)
+        durationMs = try c.decode(Int.self, forKey: .durationMs)
+        outcome = try c.decode(Outcome.self, forKey: .outcome)
+        reason = try c.decodeIfPresent(String.self, forKey: .reason)
+        requiredConcept = try c.decodeIfPresent(String.self, forKey: .requiredConcept)
+        failedStage = try c.decodeIfPresent(String.self, forKey: .failedStage)
+        usedRecipe = try c.decode(Bool.self, forKey: .usedRecipe)
+        recipeRevision = try c.decode(Int.self, forKey: .recipeRevision)
+        events = try c.decode([TraceRecord].self, forKey: .events)
+        learned = try c.decodeIfPresent(Bool.self, forKey: .learned) ?? false
+        repaired = try c.decodeIfPresent(Bool.self, forKey: .repaired) ?? false
+        debugBundle = try c.decodeIfPresent(String.self, forKey: .debugBundle)
     }
 }
 

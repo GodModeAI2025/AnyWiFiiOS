@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 import CaptiveCore
 import CaptiveCoreApple
 
@@ -12,6 +13,8 @@ struct ProfileDetailView: View {
     @State private var wifiStatus: String?
     @State private var showAdvanced = false
     @State private var showChat = false
+    @State private var showImporter = false
+    @State private var showRevisions = false
     @State private var loginStatus: String?
     @State private var askConcept: String?
 
@@ -52,6 +55,15 @@ struct ProfileDetailView: View {
                 runLogin(askValues: [item.concept: value])
             }
         }
+        .fileImporter(isPresented: $showImporter, allowedContentTypes: [.yaml, .plainText, .text]) { result in
+            if case .success(let url) = result { model.openRecipeFile(url, profileID: profileID) }
+        }
+        .dropDestination(for: URL.self) { urls, _ in
+            guard let url = urls.first else { return false }
+            model.openRecipeFile(url, profileID: profileID)
+            return true
+        }
+        .sheet(isPresented: $showRevisions) { RevisionsView(profileID: profileID) }
         .sheet(isPresented: $showChat) {
             if let d = draft {
                 ChatView(profile: d) { updated in draft = updated }
@@ -187,6 +199,10 @@ struct ProfileDetailView: View {
             LabeledContent("Recipe", value: p.wrappedValue.recipe == nil ? String(localized: "Noch keins") : String(localized: "Revision \(p.wrappedValue.recipeRevision)"))
             Button("Mit Assistent einrichten", systemImage: "sparkles") { showChat = true }
                 .accessibilityIdentifier("open-chat")
+            Button("Recipe importieren", systemImage: "square.and.arrow.down") { showImporter = true }
+                .accessibilityIdentifier("import-recipe")
+            Button("Revisionen", systemImage: "clock.arrow.circlepath") { showRevisions = true }
+                .disabled(p.wrappedValue.recipe == nil)
             Button("Erweitert (YAML)", systemImage: "curlybraces") { showAdvanced = true }
                 .accessibilityIdentifier("open-advanced")
         }
