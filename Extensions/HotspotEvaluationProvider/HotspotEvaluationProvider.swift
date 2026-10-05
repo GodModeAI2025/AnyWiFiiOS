@@ -8,7 +8,7 @@ import CaptiveCore
 /// Beansprucht nur exakte SSIDs aktivierter Profile.
 @main
 class HotspotEvaluationProvider: NEHotspotEvaluationProvider {
-    private let logger = os.Logger(subsystem: "com.example.captiveai.evaluation", category: "Provider")
+    private let logger = os.Logger(subsystem: "de.mobilebox.captiveai.evaluation", category: "Provider")
     var localizedDisplayName: String
 
     required init() {

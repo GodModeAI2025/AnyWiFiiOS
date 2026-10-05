@@ -4,8 +4,8 @@ import CaptiveCoreApple
 
 /// Gemeinsame Ablageorte für App, App Intents und Control-Extension.
 enum AppEnvironment {
-    static let appGroup = "group.com.example.captiveai"
-    static let keychainService = "com.example.captiveai"
+    static let appGroup = "group.de.mobilebox.captiveai"
+    static let keychainService = "de.mobilebox.captiveai"
 
     static var isUITest: Bool { ProcessInfo.processInfo.arguments.contains("-uitest") }
 

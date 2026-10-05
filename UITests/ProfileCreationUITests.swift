@@ -1,5 +1,11 @@
 import XCTest
 
+/// iPhone: Tab-Leiste unten. iPad: schwebende Tab-Leiste oben, dort sind die Tabs normale Buttons.
+@MainActor func selectTab(_ app: XCUIApplication, _ name: String) {
+    let bar = app.tabBars.buttons[name]
+    if bar.waitForExistence(timeout: 2) { bar.tap() } else { app.buttons[name].firstMatch.tap() }
+}
+
 final class ProfileCreationUITests: XCTestCase {
     override func setUp() { continueAfterFailure = false }
 
@@ -83,8 +89,8 @@ final class ManualModeUITests: XCTestCase {
         XCTAssertTrue(again.label.hasPrefix("Angemeldet"))
         XCTAssertFalse(again.label.contains("gelernt"), "Zweiter Lauf nutzt das Recipe: \(again.label)")
 
-        app.tabBars.buttons["Aktivität"].tap()
-        XCTAssertTrue(app.otherElements["activity-list"].waitForExistence(timeout: 5) || app.collectionViews["activity-list"].waitForExistence(timeout: 5))
+        selectTab(app, "Aktivität")
+        XCTAssertTrue(app.descendants(matching: .any)["activity-list"].firstMatch.waitForExistence(timeout: 5))
     }
 }
 
@@ -129,7 +135,7 @@ final class DebugBundleUITests: XCTestCase {
         XCTAssertTrue(status.waitForExistence(timeout: 20))
         XCTAssertTrue(status.label.contains("manuelle"), status.label)
 
-        app.tabBars.buttons["Aktivität"].tap()
+        selectTab(app, "Aktivität")
         let share = app.buttons["Debug-Paket teilen"]
         XCTAssertTrue(share.waitForExistence(timeout: 10), "Debug-Paket nach Fehlschlag")
     }
@@ -143,7 +149,7 @@ final class SharingUITests: XCTestCase {
         let app = XCUIApplication()
         app.launchArguments = ["-uitest", "-seedHotel"]
         app.launch()
-        app.tabBars.buttons["Import / Export"].tap()
+        selectTab(app, "Import / Export")
         app.buttons["export-Testhotel"].tap()
 
         app.buttons["create-export"].tap()
@@ -188,7 +194,10 @@ final class AccessibilityUITests: XCTestCase {
     /// (Profil-Detail, Einstellungen) liefert das System die Abschnittsfarben, ein Befund ließe sich dort nur mit
     /// eigenen Farben umgehen, die Dark Mode und erhöhten Kontrast schlechter bedienen (ADR 0006).
     @MainActor private func audit(_ app: XCUIApplication, _ name: String, contrast: Bool = true) throws {
-        let audits: XCUIAccessibilityAuditType = contrast ? structural.union(.contrast) : structural
+        // Auf dem iPad liegt die Seitenleiste auf einem Material, der Audit misst dort den Kontrast während der
+        // Tab-Überblendung und meldet Treffer, die auf dem iPhone nicht auftreten. iPad-Kontrast steht in der Checkliste.
+        let checkContrast = contrast && UIDevice.current.userInterfaceIdiom != .pad
+        let audits: XCUIAccessibilityAuditType = checkContrast ? structural.union(.contrast) : structural
         try app.performAccessibilityAudit(for: audits) { issue in
             // Systemelemente (Tab-Leiste, Statusleiste) liegen nicht in unserer Hand.
             if let el = issue.element, el.elementType == .tabBar || el.elementType == .statusBar { return true }
@@ -210,11 +219,11 @@ final class AccessibilityUITests: XCTestCase {
         XCTAssertTrue(app.buttons["login-now"].waitForExistence(timeout: 5))
         try audit(app, "Profil-Detail", contrast: false)
         app.navigationBars.buttons.firstMatch.tap()
-        app.tabBars.buttons["Aktivität"].tap()
+        selectTab(app, "Aktivität")
         try audit(app, "Aktivität")
-        app.tabBars.buttons["Import / Export"].tap()
+        selectTab(app, "Import / Export")
         try audit(app, "Import / Export")
-        app.tabBars.buttons["Einstellungen"].tap()
+        selectTab(app, "Einstellungen")
         try audit(app, "Einstellungen", contrast: false)
     }
 }

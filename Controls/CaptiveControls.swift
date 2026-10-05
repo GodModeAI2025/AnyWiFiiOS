@@ -10,7 +10,7 @@ struct CaptiveControlsBundle: WidgetBundle {
 /// Control-Center-Steuerelement "Im WLAN anmelden" (SPEC §3.5).
 struct LoginControl: ControlWidget {
     var body: some ControlWidgetConfiguration {
-        StaticControlConfiguration(kind: "com.example.captiveai.login") {
+        StaticControlConfiguration(kind: "de.mobilebox.captiveai.login") {
             ControlWidgetButton(action: LoginIntent(profile: nil)) {
                 Label("Im WLAN anmelden", systemImage: "wifi")
             }

@@ -13,7 +13,6 @@ struct LocalNotifier: UserNotifier {
         content.title = profileName
         content.body = String(localized: "\(prompt) wird für die WLAN-Anmeldung gebraucht.")
         content.userInfo = ["runId": runId.uuidString]
-        content.interruptionLevel = .timeSensitive
         let request = UNNotificationRequest(identifier: runId.uuidString, content: content, trigger: nil)
         try? await UNUserNotificationCenter.current().add(request)
     }
@@ -23,7 +22,7 @@ struct LocalNotifier: UserNotifier {
 /// Die Logik liegt in `AuthenticationCore` (CaptiveCore), hier nur die Abbildung auf das System.
 @main
 class HotspotAuthenticationProvider: NEHotspotAuthenticationProvider {
-    private let logger = os.Logger(subsystem: "com.example.captiveai.authentication", category: "Provider")
+    private let logger = os.Logger(subsystem: "de.mobilebox.captiveai.authentication", category: "Provider")
     /// Merkt sich pro SSID den offenen Lauf, damit `presentUI` ihn fortsetzt.
     private let runs = RunTable()
 

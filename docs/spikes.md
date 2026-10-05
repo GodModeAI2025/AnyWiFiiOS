@@ -1,6 +1,6 @@
 # Spike-Ergebnisbericht (Vorlage 02 §28, mit Gate S13)
 
-Stand: 4. Oktober 2026. Status: Entitlement noch nicht beantragt (Phase 0, Datum: offen). Die Gates, die nur Core-Logik betreffen, laufen automatisiert in CI. Gates auf Gerät warten auf Entitlement und Hardware.
+Stand: 4. Oktober 2026. Status: Hotspot-Helper-Antrag am 5. Oktober 2026 über das Apple-Formular eingereicht (Bundle-ID `de.mobilebox.captiveai`, Team SP73Z8JWXM). Antwort von Apple steht aus. Die Gates, die nur Core-Logik betreffen, laufen automatisiert in CI. Gates auf Gerät warten auf Entitlement und Hardware.
 
 Legende: PASS (automatisiert) = durch Test belegt. OFFEN (Gerät) = steht in `docs/device-test-checklist.md`.
 

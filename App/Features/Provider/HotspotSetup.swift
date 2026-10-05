@@ -14,8 +14,8 @@ final class HotspotSetup {
         case unavailable(String)
     }
 
-    static let evaluationBundleID = "com.example.captiveai.evaluation"
-    static let authenticationBundleID = "com.example.captiveai.authentication"
+    static let evaluationBundleID = "de.mobilebox.captiveai.evaluation"
+    static let authenticationBundleID = "de.mobilebox.captiveai.authentication"
 
     private(set) var state: State = .unknown
     private(set) var notificationsAllowed: Bool?
@@ -34,7 +34,7 @@ final class HotspotSetup {
 
     /// Schaltet den Provider ein oder aus und übergibt die SSIDs aktiver Profile.
     func apply(enabled: Bool, profiles: [PortalProfile]) async {
-        if enabled { notificationsAllowed = (try? await UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .timeSensitive])) ?? false }
+        if enabled { notificationsAllowed = (try? await UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound])) ?? false }
         let manager = NEHotspotManager.shared
         do {
             try? await manager.loadFromPreferences()

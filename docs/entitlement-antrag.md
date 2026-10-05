@@ -5,7 +5,7 @@ Stand: 4. Oktober 2026. Den Antrag kann nur der Account Holder stellen. Das Team
 ## Wo
 
 1. developer.apple.com, Account, Certificates, Identifiers & Profiles, Identifiers.
-2. App ID auswählen (Platzhalter bis zur Freigabe: `com.example.captiveai`, vorher durch die echte Bundle-ID ersetzen).
+2. App ID `de.mobilebox.captiveai` auswählen (Team SP73Z8JWXM).
 3. Capability Requests, Hotspot Helper, Request.
 4. Verweist Apple dort auf den Fragebogen, diesen nutzen: https://developer.apple.com/contact/request/hotspot-helper/
 
@@ -53,11 +53,11 @@ Ja, im manuellen Modus (App öffnen, App Intent, Kurzbefehl, Control Center). Da
 
 ## Zusätzliche Capabilities für die Extensions
 
-Die beiden Provider-Extensions tragen laut Xcode-Template das Entitlement `com.apple.developer.networking.networkextension` mit dem Wert `hotspot-provider`. Beide Extensions und die App brauchen außerdem App Group (`group.com.example.captiveai`) und Keychain Sharing (`<TeamID>.com.example.captiveai.shared`). Die App braucht für das Einrichten von WLAN-Profilen `com.apple.developer.networking.HotspotConfiguration` (Self-Service). Benachrichtigungen verlangen keine Capability, nur die Nutzererlaubnis.
+Die beiden Provider-Extensions tragen laut Xcode-Template das Entitlement `com.apple.developer.networking.networkextension` mit dem Wert `hotspot-provider`. Beide Extensions und die App brauchen außerdem App Group (`group.de.mobilebox.captiveai`) und Keychain Sharing (`SP73Z8JWXM.de.mobilebox.captiveai.shared`). Die App braucht für das Einrichten von WLAN-Profilen `com.apple.developer.networking.HotspotConfiguration` (Self-Service). Benachrichtigungen verlangen keine Capability, nur die Nutzererlaubnis.
 
 ## Vor dem Absenden prüfen
 
-- Bundle-ID und Team-ID sind eingetragen (SPEC §8, Punkt 1).
+- Bundle-ID `de.mobilebox.captiveai` und Team-ID `SP73Z8JWXM` sind eingetragen (SPEC §8, Punkt 1 erledigt).
 - Der Antrag kommt vom Account Holder.
 - Die Beschreibung stimmt mit dem App-Store-Eintrag und der Privacy-Manifest-Angabe überein (01 §34).
 - Das Entitlement `com.apple.developer.networking.HotspotConfiguration` (WLAN einrichten) braucht keinen Antrag, es ist Self-Service.
