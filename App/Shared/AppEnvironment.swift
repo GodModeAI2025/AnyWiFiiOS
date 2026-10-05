@@ -22,6 +22,8 @@ enum AppEnvironment {
     static func profileStore() -> ProfileStore { ProfileStore(directory: base.appendingPathComponent("Profiles", isDirectory: true)) }
     static func runLogStore() -> RunLogStore { RunLogStore(directory: base.appendingPathComponent("RunLogs", isDirectory: true)) }
 
+    static func pendingStore() -> PendingStore { PendingStore(directory: base.appendingPathComponent("Pending", isDirectory: true)) }
+
     static func debugDirectory() -> URL { base.appendingPathComponent("Debug", isDirectory: true) }
 
     static func secrets() -> any SecretStore {

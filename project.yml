@@ -16,8 +16,8 @@ settings:
 packages:
   CaptiveCore:
     path: Packages/CaptiveCore
-targets:
-  CaptiveAIApp:
+targetTemplates:
+  AppBase:
     type: application
     platform: iOS
     sources:
@@ -78,6 +78,20 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.example.captiveai
         CODE_SIGN_ENTITLEMENTS: App/CaptiveAI.entitlements
         GENERATE_INFOPLIST_FILE: NO
+
+targets:
+  CaptiveAIApp:
+    templates: [AppBase]
+    # Gerätebuild: mit Hotspot-Providern (brauchen Entitlements im Provisioning Profile).
+    dependencies:
+      - target: HotspotEvaluationProvider
+      - target: HotspotAuthenticationProvider
+  CaptiveAIAppDev:
+    templates: [AppBase]
+    # Simulator und CI: ohne Provider, der Simulator lehnt deren Extension-Points ab (ADR 0005).
+    settings:
+      base:
+        PRODUCT_NAME: CaptiveAIApp
   CaptiveAIControls:
     type: app-extension
     platform: iOS
@@ -111,13 +125,81 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.example.captiveai.controls
         GENERATE_INFOPLIST_FILE: NO
         SKIP_INSTALL: YES
+  HotspotEvaluationProvider:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: Extensions/HotspotEvaluationProvider
+      - path: App/Shared
+    dependencies:
+      - package: CaptiveCore
+        product: CaptiveCore
+      - package: CaptiveCore
+        product: CaptiveCoreApple
+    info:
+      path: Extensions/HotspotEvaluationProvider/Info.plist
+      properties:
+        CFBundleDisplayName: CaptiveAI Evaluation
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CaptiveKeychainGroup: "$(AppIdentifierPrefix)com.example.captiveai.shared"
+        EXAppExtensionAttributes:
+          EXExtensionPointIdentifier: com.apple.networkextension.hotspot-evaluation
+    entitlements:
+      path: Extensions/HotspotEvaluationProvider/HotspotEvaluationProvider.entitlements
+      properties:
+        com.apple.developer.networking.networkextension:
+          - hotspot-provider
+        com.apple.security.application-groups:
+          - group.com.example.captiveai
+        keychain-access-groups:
+          - $(AppIdentifierPrefix)com.example.captiveai.shared
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.captiveai.evaluation
+        GENERATE_INFOPLIST_FILE: NO
+        SKIP_INSTALL: YES
+  HotspotAuthenticationProvider:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: Extensions/HotspotAuthenticationProvider
+      - path: App/Shared
+    dependencies:
+      - package: CaptiveCore
+        product: CaptiveCore
+      - package: CaptiveCore
+        product: CaptiveCoreApple
+    info:
+      path: Extensions/HotspotAuthenticationProvider/Info.plist
+      properties:
+        CFBundleDisplayName: CaptiveAI Anmeldung
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CaptiveKeychainGroup: "$(AppIdentifierPrefix)com.example.captiveai.shared"
+        NSAppTransportSecurity:
+          NSAllowsArbitraryLoads: true
+        EXAppExtensionAttributes:
+          EXExtensionPointIdentifier: com.apple.networkextension.hotspot-authentication
+    entitlements:
+      path: Extensions/HotspotAuthenticationProvider/HotspotAuthenticationProvider.entitlements
+      properties:
+        com.apple.developer.networking.networkextension:
+          - hotspot-provider
+        com.apple.security.application-groups:
+          - group.com.example.captiveai
+        keychain-access-groups:
+          - $(AppIdentifierPrefix)com.example.captiveai.shared
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.captiveai.authentication
+        GENERATE_INFOPLIST_FILE: NO
+        SKIP_INSTALL: YES
   CaptiveUITests:
     type: bundle.ui-testing
     platform: iOS
     sources:
       - path: UITests
     dependencies:
-      - target: CaptiveAIApp
+      - target: CaptiveAIAppDev
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.example.captiveai.uitests
@@ -126,7 +208,11 @@ schemes:
   CaptiveAI:
     build:
       targets:
-        CaptiveAIApp: all
+        CaptiveAIAppDev: all
     test:
       targets:
         - CaptiveUITests
+  CaptiveAI-Device:
+    build:
+      targets:
+        CaptiveAIApp: all

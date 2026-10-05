@@ -91,9 +91,26 @@ struct RunRow: View {
 }
 
 struct SettingsView: View {
+    @Environment(AppModel.self) private var model
+
     var body: some View {
         NavigationStack {
             Form {
+                Section {
+                    Toggle("Automatisch anmelden", isOn: Binding(
+                        get: { model.hotspot.state == .enabled },
+                        set: { on in Task { await model.hotspot.apply(enabled: on, profiles: model.profiles) } }))
+                        .accessibilityIdentifier("auto-login")
+                    statusRow
+                    if model.hotspot.notificationsAllowed == false {
+                        Label("Benachrichtigungen sind aus. Ohne sie erfährst du nicht, wenn ein Wert fehlt.", systemImage: "bell.slash")
+                            .font(.footnote).foregroundStyle(.orange)
+                    }
+                } header: {
+                    Text("Hotspot-Helper")
+                } footer: {
+                    Text("Meldet dich an, sobald das Gerät ein WLAN mit aktivem Profil betritt. Nur Netze aus deinen Profilen werden beansprucht. Ohne diese Funktion bleibt der Manuelle Modus (App öffnen, Kurzbefehl, Control Center).")
+                }
                 Section("Datenschutz") {
                     Text("Alle Daten bleiben auf dem Gerät. Es gibt keine Analytics und keine eigenen Server.")
                         .font(.footnote)
@@ -103,6 +120,17 @@ struct SettingsView: View {
                 }
             }
             .navigationTitle("Einstellungen")
+            .task { await model.hotspot.refresh() }
+        }
+    }
+
+    @ViewBuilder private var statusRow: some View {
+        switch model.hotspot.state {
+        case .enabled: Label("Aktiv", systemImage: "checkmark.circle.fill").foregroundStyle(.green)
+        case .disabled: Label("Aus", systemImage: "circle")
+        case .unknown: ProgressView()
+        case .unavailable(let reason):
+            Label(reason, systemImage: "exclamationmark.triangle").font(.footnote).foregroundStyle(.secondary)
         }
     }
 }

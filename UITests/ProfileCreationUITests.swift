@@ -158,3 +158,22 @@ final class SharingUITests: XCTestCase {
         XCTAssertFalse(app.secureTextFields["export-passphrase"].exists)
     }
 }
+
+/// Phase 9: Wartet der Provider auf einen Wert, fragt die App ihn ab (Wert nur im Keychain, Referenz im Pending-Eintrag).
+final class PendingAskUITests: XCTestCase {
+    override func setUp() { continueAfterFailure = false }
+
+    @MainActor func testPendingValueIsRequestedFromUser() {
+        let app = XCUIApplication()
+        app.launchArguments = ["-uitest", "-seedHotel", "-seedPending"]
+        app.launch()
+        let field = app.textFields["pending-value"]
+        XCTAssertTrue(field.waitForExistence(timeout: 10), "Wertabfrage erscheint für wartende Anmeldung")
+        XCTAssertTrue(app.staticTexts["Testhotel braucht Zimmernummer"].exists || app.staticTexts.containing(NSPredicate(format: "label CONTAINS 'Zimmernummer'")).firstMatch.exists)
+        field.tap()
+        field.typeText("417")
+        app.buttons["pending-submit"].tap()
+        XCTAssertTrue(app.staticTexts["Testhotel"].firstMatch.waitForExistence(timeout: 5))
+        XCTAssertFalse(field.exists)
+    }
+}

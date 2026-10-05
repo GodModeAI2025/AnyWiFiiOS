@@ -12,6 +12,10 @@ final class AppModel {
     let logs: RunLogStore
     private(set) var runLogs: [RunLog] = []
     private(set) var running: Set<UUID> = []
+    let pendingStore = AppEnvironment.pendingStore()
+    /// Wartende Anmeldung des Providers, für die die App einen Wert braucht.
+    var pendingAsk: PendingAuthentication?
+    let hotspot = HotspotSetup()
     /// Von außen geöffnete Recipe-Datei (onOpenURL, Drag & Drop) wartet auf Zuordnung und Bestätigung.
     var pendingImport: PendingImport?
 
@@ -70,7 +74,13 @@ final class AppModel {
     static func make() -> AppModel {
         let model = AppModel(store: AppEnvironment.profileStore(), secrets: AppEnvironment.secrets(),
                              logs: AppEnvironment.runLogStore())
-        if ProcessInfo.processInfo.arguments.contains("-seedHotel") { model.seedHotelProfile() }
+        let args = ProcessInfo.processInfo.arguments
+        if args.contains("-seedHotel") { model.seedHotelProfile() }
+        if args.contains("-seedPending"), let p = model.profiles.first {
+            // Simuliert den Provider: Anmeldung wartet auf die Zimmernummer.
+            try? model.pendingStore.write(PendingAuthentication(profileId: p.id, profileName: p.name,
+                                                                requiredConcept: "roomNumber", prompt: "Zimmernummer"))
+        }
         return model
     }
 
@@ -121,6 +131,13 @@ final class AppModel {
         guard let name = log.debugBundle else { return nil }
         let u = AppEnvironment.debugDirectory().appendingPathComponent(name)
         return FileManager.default.fileExists(atPath: u.path) ? u : nil
+    }
+
+    /// Zeigt die neueste wartende Wertabfrage (beim Antippen der Benachrichtigung und beim Öffnen der App).
+    func checkPendingAsk(runId: UUID? = nil) {
+        pendingStore.purge()
+        if let runId, let p = pendingStore.read(runId), p.status == .awaitingUser { pendingAsk = p; return }
+        if pendingAsk == nil { pendingAsk = pendingStore.awaiting().first }
     }
 
     func profile(_ id: UUID) -> PortalProfile? { profiles.first { $0.id == id } }
