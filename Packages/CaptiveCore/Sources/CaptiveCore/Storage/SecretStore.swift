@@ -1,0 +1,45 @@
+import Foundation
+
+/// Ablage für Secrets und persönliche Werte (01 §20). Die Apple-Implementierung nutzt den
+/// Keychain, Tests nutzen `InMemorySecretStore`. Werte landen nie in JSON, Logs oder Exporten.
+public protocol SecretStore: Sendable {
+    func read(_ key: String) throws -> String?
+    func write(_ value: String, for key: String) throws
+    func delete(_ key: String) throws
+    func contains(_ key: String) -> Bool
+}
+
+public final class InMemorySecretStore: SecretStore, @unchecked Sendable {
+    private let lock = NSLock()
+    private var values: [String: String] = [:]
+
+    public init(_ initial: [String: String] = [:]) { values = initial }
+
+    public func read(_ key: String) throws -> String? { lock.withLock { values[key] } }
+    public func write(_ value: String, for key: String) throws { lock.withLock { values[key] = value } }
+    public func delete(_ key: String) throws { lock.withLock { _ = values.removeValue(forKey: key) } }
+    public func contains(_ key: String) -> Bool { lock.withLock { values[key] != nil } }
+}
+
+/// Wertquellen aus Secret-Store, Profilwerten und einmalig eingegebenen Werten.
+/// `ask`-Werte stammen aus der UI (Pending-Input), `keychain`/`profile` aus dem Store.
+public struct StoreValueProvider: ValueProvider {
+    public var secrets: any SecretStore
+    public var askValues: [String: String]
+    public var runtimeValues: [String: String]
+
+    public init(secrets: any SecretStore, askValues: [String: String] = [:], runtimeValues: [String: String] = [:]) {
+        self.secrets = secrets
+        self.askValues = askValues
+        self.runtimeValues = runtimeValues
+    }
+
+    public func value(for source: ValueSource) async -> String? {
+        switch source {
+        case .literal(let s): return s
+        case .keychain(let k), .profile(let k): return (try? secrets.read(k)) ?? nil
+        case .ask(let c): return askValues[c]
+        case .runtime(let c): return runtimeValues[c]
+        }
+    }
+}

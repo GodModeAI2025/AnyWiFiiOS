@@ -1,0 +1,71 @@
+name: CaptiveAI
+options:
+  bundleIdPrefix: com.example
+  deploymentTarget:
+    iOS: "27.0"
+  developmentLanguage: de
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+    TARGETED_DEVICE_FAMILY: "1,2"
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    DEVELOPMENT_TEAM: ""
+packages:
+  CaptiveCore:
+    path: Packages/CaptiveCore
+targets:
+  CaptiveAIApp:
+    type: application
+    platform: iOS
+    sources:
+      - path: App
+    dependencies:
+      - package: CaptiveCore
+        product: CaptiveCore
+      - package: CaptiveCore
+        product: CaptiveCoreApple
+    info:
+      path: App/Info.plist
+      properties:
+        CFBundleDisplayName: CaptiveAI
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CaptiveKeychainGroup: "$(AppIdentifierPrefix)com.example.captiveai.shared"
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+    entitlements:
+      path: App/CaptiveAI.entitlements
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.captiveai
+        CODE_SIGN_ENTITLEMENTS: App/CaptiveAI.entitlements
+        GENERATE_INFOPLIST_FILE: NO
+  CaptiveUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: UITests
+    dependencies:
+      - target: CaptiveAIApp
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.captiveai.uitests
+        GENERATE_INFOPLIST_FILE: YES
+schemes:
+  CaptiveAI:
+    build:
+      targets:
+        CaptiveAIApp: all
+    test:
+      targets:
+        - CaptiveUITests

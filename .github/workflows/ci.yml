@@ -12,3 +12,34 @@ jobs:
       - name: swift test (CaptiveCore)
         working-directory: Packages/CaptiveCore
         run: swift test
+
+  app-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Xcode 27 vorhanden?
+        id: xcode
+        run: |
+          if xcodebuild -showsdks | grep -q "iphonesimulator27"; then
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::Auf diesem Runner fehlt das iOS-27-SDK. App-Build und UI-Tests laufen lokal (siehe README)."
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Tools
+        if: steps.xcode.outputs.ok == 'true'
+        run: brew install xcodegen
+      - name: Projekt erzeugen
+        if: steps.xcode.outputs.ok == 'true'
+        run: xcodegen generate
+      - name: Testportal starten
+        if: steps.xcode.outputs.ok == 'true'
+        run: |
+          nohup python3 tools/test-portal/server.py --port 8099 > portal.log 2>&1 &
+          sleep 1
+      - name: Build und UI-Tests (Simulator)
+        if: steps.xcode.outputs.ok == 'true'
+        run: |
+          DEST=$(xcrun simctl list devices available | grep -m1 -oE 'iPhone [^(]+\(([0-9A-F-]+)\)' | grep -oE '[0-9A-F-]{36}')
+          xcodebuild -project CaptiveAI.xcodeproj -scheme CaptiveAI \
+            -destination "platform=iOS Simulator,id=$DEST" CODE_SIGNING_ALLOWED=NO test
